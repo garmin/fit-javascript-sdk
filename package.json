@@ -1,0 +1,27 @@
+{
+  "name": "@garmin-fit/sdk",
+  "version": "0.94.0",
+  "description": "FIT Node SDK",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node .",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "author": "Garmin International, Inc.",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/garmin/fit-javascript-sdk"
+  },
+  "files": [
+    "src/"
+  ],
+  "devDependencies": {
+    "jest": "^28.1.2",
+    "jsdoc": "^3.6.11"
+  },
+  "jest": {
+    "transform": {}
+  }
+}
