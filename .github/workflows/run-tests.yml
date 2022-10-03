@@ -27,4 +27,3 @@ jobs:
     - run: npm run build --if-present
     - name: Run Tests
       run: npm test
-fit-node-sdk/node.js.yml at master · pryhoda/fit-node-sdk
