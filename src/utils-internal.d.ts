@@ -1,7 +1,7 @@
 declare namespace _default {
-    export { sanitizeValues };
-    export { onlyNullValues };
-    export { onlyInvalidValues };
+  export { sanitizeValues };
+  export { onlyNullValues };
+  export { onlyInvalidValues };
 }
 export default _default;
 declare function sanitizeValues(values: any): any;

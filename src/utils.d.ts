@@ -1,6 +1,6 @@
 declare namespace _default {
-    export { FIT_EPOCH_MS };
-    export { convertDateTimeToDate };
+  export { FIT_EPOCH_MS };
+  export { convertDateTimeToDate };
 }
 export default _default;
 /**
