@@ -214,6 +214,10 @@ class Stream {
 
                 case FIT.BaseType.UINT32:
                 case FIT.BaseType.UINT32Z:
+                    if (dataView.buffer.byteLength === 1) {
+                        values.push(0);
+                        break
+                    }
                     values.push(dataView.getUint32(i * baseTypeSize, endianness));
                     break;
 
