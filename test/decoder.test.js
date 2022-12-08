@@ -498,4 +498,17 @@ describe("Decoder Tests", () => {
             expect(errors.length).toBe(1);
         });
     });
+
+    describe("Corrupt File Tests", () => {
+        test("When the field definition size and data type do not match, read past the field", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortWithWrongFieldDefSize);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+
+            expect(errors.length).toBe(0);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+            expect(messages.fileIdMesgs[0].hasOwnProperty("timeCreated")).toBe(false);
+
+        });
+    });
 });
