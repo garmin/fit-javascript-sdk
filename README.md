@@ -67,7 +67,7 @@ The Read method accepts an optional options object that can be used to customize
 
 ````js
 const { messages, errors } = decoder.read({
-    mesgListener = (messageNumber, message) => {},
+    mesgListener: (messageNumber, message) => {},
     applyScaleAndOffset: true,
     expandSubFields: true,
     expandComponents: true,
@@ -92,7 +92,7 @@ const onMesg = (messageNumber, message) => {
 }
 
 const { messages, errors } = decoder.read({
-    mesgListener = onMesg
+    mesgListener: onMesg
 });
 
 console.log(recordFields);
