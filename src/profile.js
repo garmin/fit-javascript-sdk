@@ -1105,20 +1105,6 @@ const Profile = {
                     hasComponents: false,
                     subFields: []
             },
-            236: {
-                num: 236, // Used to configure whether climbs should be drawn onto the map
-                name: "drawClimbPro",
-                type: "bool",
-                array: "false",
-                scale: 1,
-                offset: 0,
-                units: "",
-                bits: [],
-                    components: [],
-                    isAccumulated: false,
-                    hasComponents: false,
-                    subFields: []
-            },
         },
      },
         3: {
