@@ -67,7 +67,7 @@ The Read method accepts an optional options object that can be used to customize
 
 ````js
 const { messages, errors } = decoder.read({
-    mesgListener = (messageNumber, message) => {},
+    mesgListener: (messageNumber, message) => {},
     applyScaleAndOffset: true,
     expandSubFields: true,
     expandComponents: true,
@@ -208,10 +208,10 @@ const FIT_EPOCH_MS = 631065600000;
 ````
 The FIT_EPOCH_MS value can be used to convert FIT Epoch values to JavaScript Date objects.
 ````js
-const jsDate = new Date(fitDateTime * 1000 + FIT_EPOCH_MS);
+const jsDate = new Date(fitDateTime * 1000 + Utils.FIT_EPOCH_MS);
 ````
 ### convertDateTimeToDate Method
 A convince method for converting FIT Epoch values to JavaScript Date objects.
 ````js
-const jsDate = convertDateTimeToDate(fitDateTime);
+const jsDate = Utils.convertDateTimeToDate(fitDateTime);
 ````
