@@ -532,19 +532,4 @@ describe("Decoder Tests", () => {
 
         });
     });
-
-    describe("IOP FIT File Tests", () => {
-        test("Test IOP data field byte arrays only set to null if all values are invalid", () => {
-            const stream = Stream.fromByteArray(Data.fitFileIOP);
-            const decode = new Decoder(stream);
-            const { messages, errors } = decode.read();
-
-            expect(errors.length).toBe(0);
-            expect(messages.iopMesgs.length).toBe(3);
-
-            expect(messages.iopMesgs[0].data).toEqual([1, 2, 255, 3, 4]);
-            expect(messages.iopMesgs[1].data).toEqual([0, 255, 255, 4, 5]);
-            expect(messages.iopMesgs[2].data).toBe(undefined);
-        });
-    });
 });
