@@ -338,6 +338,27 @@ describe("Decoder Tests", () => {
             })
         });
 
+        test("Component Expansion should work with expanded components which are enums", () => {
+            const stream = Stream.fromByteArray(Data.fitFileMonitoring);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+
+            expect(errors.length).toBe(0);
+            expect(messages.monitoringMesgs.length).toBe(4);
+
+            expect(messages.monitoringMesgs[0].activityType).toBe(8);
+            expect(messages.monitoringMesgs[0].intensity).toBe(3);
+
+            expect(messages.monitoringMesgs[1].activityType).toBe(0);
+            expect(messages.monitoringMesgs[1].intensity).toBe(0);
+
+            expect(messages.monitoringMesgs[2].activityType).toBe(30);
+            expect(messages.monitoringMesgs[2].intensity).toBe(6);
+
+            expect(messages.monitoringMesgs[3].activityType).toBe(undefined);
+            expect(messages.monitoringMesgs[3].intensity).toBe(undefined);
+        });
+
     });
 
     describe("Sub-Field Expansion Tests", () => {
