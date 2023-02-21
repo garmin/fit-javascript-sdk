@@ -229,6 +229,18 @@ describe("Stream Tests", () => {
             expect(value).toBe(1);
         });
 
+        const byteArrays = [
+            { data: [0x01, 0x02, 0xFF, 0x03, 0x04], expected: [1, 2, 255, 3, 4] },
+            { data: [0xFF, 0xFE, 0xFF, 0xFF, 0xFF], expected: [255, 254, 255, 255, 255] },
+            { data: [0xFF, 0xFF, 0xFF], expected: null }
+        ];
+        test.each(byteArrays)("Test Byte Array with Invalids", (byteArray) => {
+            const stream = Stream.fromByteArray(byteArray.data);
+            const values = stream.readValue(FIT.BaseType.BYTE, byteArray.data.length);
+
+            expect(values).toEqual(byteArray.expected);
+        });
+
         test("Test invalid BaseType", () => {
             const stream = Stream.fromByteArray([0xFFFF]);
             expect(() => {
