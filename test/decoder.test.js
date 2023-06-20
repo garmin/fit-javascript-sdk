@@ -248,12 +248,14 @@ describe("Decoder Tests", () => {
 
     describe("Compressed Timestamp Data Message Tests", () => {
         test("Compressed Timestamp Data Message should error", () => {
-            const stream = Stream.fromByteArray([0x0E, 0x20, 0x8B, 0x08, 0x0B, 0x00, 0x00, 0x00, 0x2E, 0x46, 0x49, 0x54, 0xCC, 0xFB, 0x80, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x04, 0x00, 0x00,]);
+            const stream = Stream.fromByteArray(Data.fitFileShortCompressedTimestamp);
             const decode = new Decoder(stream);
             const { errors } = decode.read();
-            expect(errors.length).not.toBe(0);
+            expect(errors.length).toBe(1);
+            expect(errors[0].message).toContain("compressed timestamp messages are not currently supported");
         });
     });
+
     describe("Decoder FIT Files With Developer Data Tests", () => {
         test("When Developer Data exists, it should be read", () => {
             const buf = fs.readFileSync("test/data/Activity.fit");
@@ -263,6 +265,8 @@ describe("Decoder Tests", () => {
             expect(errors.length).toBe(0);
             expect(messages.recordMesgs.length).toBe(3601);
 
+            expect(messages.fieldDescriptionMesgs[0].fieldName).toBe("Doughnuts Earned");
+            expect(messages.developerDataIdMesgs[0].applicationId.join('')).toBe("3210547689101112131415");
             expect(messages.sessionMesgs[0].developerFields[0]).toBeCloseTo(3, 0);
 
             messages.recordMesgs.forEach((recordMesg) => {
