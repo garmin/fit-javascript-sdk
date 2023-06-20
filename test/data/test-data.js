@@ -477,6 +477,7 @@ const workout800mRepeatsBigEndian = [
 export default {
     fitFileShort,
     fitFileShortWithWrongFieldDefSize,
+    fitFileShortCompressedTimestamp,
     fitFileChained,
     fitFileChainedWeirdVivoki,
     fitFileDevDataWithoutFieldDescription,
