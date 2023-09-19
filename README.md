@@ -7,11 +7,11 @@ Share your knowledge, ask questions, and get the latest FIT SDK news in the [FIT
 The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v14.0 or higher, or a browser with a compatible JavaScript runtime engine.
 ## Install
 ```sh
-npm install @garmin-fit/sdk
+npm install @garmin/fitsdk
 ```
 ## Usage
 ````js
-import { Decoder, Stream, Profile, Utils } from '@garmin-fit/sdk';
+import { Decoder, Stream, Profile, Utils } from '@garmin/fitsdk';
 
 const bytes = [0x0E, 0x10, 0xD9, 0x07, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x46, 0x49, 0x54, 0x91, 0x33, 0x00, 0x00];
 
