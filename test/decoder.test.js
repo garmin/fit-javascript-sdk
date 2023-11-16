@@ -350,17 +350,21 @@ describe("Decoder Tests", () => {
             expect(errors.length).toBe(0);
             expect(messages.monitoringMesgs.length).toBe(4);
 
-            expect(messages.monitoringMesgs[0].activityType).toBe(8);
+            expect(messages.monitoringMesgs[0].activityType).toBe("running");
             expect(messages.monitoringMesgs[0].intensity).toBe(3);
+            expect(messages.monitoringMesgs[0].cycles).toBe(10);
 
-            expect(messages.monitoringMesgs[1].activityType).toBe(0);
+            expect(messages.monitoringMesgs[1].activityType).toBe("walking");
             expect(messages.monitoringMesgs[1].intensity).toBe(0);
+            expect(messages.monitoringMesgs[1].cycles).toBe(30);
 
             expect(messages.monitoringMesgs[2].activityType).toBe(30);
-            expect(messages.monitoringMesgs[2].intensity).toBe(6);
+            expect(messages.monitoringMesgs[2].intensity).toBe(0);
+            expect(messages.monitoringMesgs[2].cycles).toBe(15);
 
             expect(messages.monitoringMesgs[3].activityType).toBe(undefined);
             expect(messages.monitoringMesgs[3].intensity).toBe(undefined);
+            expect(messages.monitoringMesgs[3].cycles).toBe(15);
         });
 
     });
@@ -534,6 +538,26 @@ describe("Decoder Tests", () => {
             expect(messages["fileIdMesgs"].length).toBe(1);
             expect(messages.fileIdMesgs[0].hasOwnProperty("timeCreated")).toBe(false);
 
+        });
+    });
+    
+    describe("Decode Include Unknown Data", () => {
+        test("When decoding a file with the includeUnknownData flag set to true", () => {
+            const buf = fs.readFileSync("test/data/WithGearChangeData.fit");
+            const stream = Stream.fromBuffer(buf);
+            const decode = new Decoder(stream);
+            const { errors } = decode.read({ includeUnknownData: true });
+
+            expect(errors.length).toBe(0);
+        });
+
+        test("When decoding a file with the includeUnknownData flag set to false", () => {
+            const buf = fs.readFileSync("test/data/WithGearChangeData.fit");
+            const stream = Stream.fromBuffer(buf);
+            const decode = new Decoder(stream);
+            const { errors } = decode.read({ includeUnknownData: false });
+
+            expect(errors.length).toBe(0);
         });
     });
 });

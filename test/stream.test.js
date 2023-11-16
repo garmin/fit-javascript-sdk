@@ -20,9 +20,10 @@ describe("Stream Tests", () => {
         });
 
         test("Read Byte", () => {
-            const stream = Stream.fromByteArray([0x01]);
-            const value = stream.readByte();
-            expect(value).toBe(0x01);
+            const stream = Stream.fromByteArray([0x00, 0x01, 0xFF]);
+            expect(stream.readByte()).toBe(0x00);
+            expect(stream.readByte()).toBe(0x01);
+            expect(stream.readByte()).toBe(0xFF);
         });
 
         test("Read Bytes", () => {
