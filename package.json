@@ -1,6 +1,6 @@
 {
   "name": "@garmin/fitsdk",
-  "version": "21.126.0",
+  "version": "21.133.0",
   "description": "FIT JavaScript SDK",
   "main": "src/index.js",
   "type": "module",
