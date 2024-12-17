@@ -112,6 +112,19 @@ describe("Decoder Tests", () => {
             expect(errors.length).toBeGreaterThanOrEqual(1);
 
         });
+
+        test("Decoding should not reset the stream", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShort);
+            const decode = new Decoder(stream);
+
+            decode.read();
+            expect(stream.position).toBe(stream.length);
+
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+            expect(messages).toEqual({});
+        });
+
         test("There should be 1 file_id messsage", () => {
             const stream = Stream.fromByteArray(Data.fitFileShort);
             const decode = new Decoder(stream);
@@ -120,7 +133,16 @@ describe("Decoder Tests", () => {
             expect(errors.length).toBe(0);
             expect(messages["fileIdMesgs"].length).toBe(1);
         });
+
+        test("File with invalid CRC should fail", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortInvalidCRC);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(1);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+        });
     });
+
     describe("Chained FIT File Tests", () => {
         test("There should be 2 file_id messsages", () => {
             const stream = Stream.fromByteArray(Data.fitFileChained);
@@ -134,6 +156,79 @@ describe("Decoder Tests", () => {
             const stream = Stream.fromByteArray(Data.fitFileChainedWeirdVivoki);
             const decode = new Decoder(stream);
             const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+        });
+    });
+
+    describe("Skip Header Flag Tests", () => {
+        test("File with invalid header should not fail when skipHeader: true", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortInvalidHeader);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ skipHeader: true});
+
+            expect(errors.length).toBe(0);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+        });
+
+        test("File with invalid header should fail when skipHeader: false", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortInvalidHeader);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ skipHeader: false});
+
+            expect(errors.length).toBe(1);
+        });
+
+        test("File with valid header should not fail when skipHeader: true", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShort);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ skipHeader: true});
+
+            expect(errors.length).toBe(0);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+        });
+
+        test("File with invalid CRC should not fail when skipHeader: true", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortInvalidCRC);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ skipHeader: true});
+
+            expect(errors.length).toBe(0);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+        })
+    });
+
+    describe("Data Only Flag Tests", () => {
+        test("File with no header should not fail when dataOnly: true", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortDataOnly);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ dataOnly: true});
+
+            expect(errors.length).toBe(0);
+            expect(messages["fileIdMesgs"].length).toBe(1);
+        });
+
+        test("File with no header should faile when dataOnly: false", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortDataOnly);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ dataOnly: false});
+
+            expect(errors.length).toBe(1);
+        });
+
+        test("File with valid header should not fail when dataOnly: true", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShort);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ dataOnly: true});
+
+            expect(errors.length).toBe(1);
+        });
+
+        test("File with invalid CRC should not fail when dataOnly: true", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortInvalidCRC.slice(14));
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ dataOnly: true});
+
             expect(errors.length).toBe(0);
             expect(messages["fileIdMesgs"].length).toBe(1);
         });
@@ -367,6 +462,23 @@ describe("Decoder Tests", () => {
             expect(messages.monitoringMesgs[3].cycles).toBe(15);
         });
 
+        test("Component Expansion should expand components which have their own components", () => {
+            const stream = Stream.fromByteArray(Data.fitFileCompressedSpeedAndDistance);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+
+            expect(messages.recordMesgs[0].distance).toBe(8)
+            expect(messages.recordMesgs[0].speed).toBe(1.39)
+
+            // Speed should also expand into enhanced speed
+            expect(messages.recordMesgs[0].enhancedSpeed).toBe(1.39)
+
+            expect(messages.recordMesgs[1].distance).toBe(20)
+            expect(messages.recordMesgs[1].speed).toBe(2.49)
+            expect(messages.recordMesgs[1].enhancedSpeed).toBe(2.49)
+        });
+
     });
 
     describe("Sub-Field Expansion Tests", () => {
@@ -436,6 +548,36 @@ describe("Decoder Tests", () => {
             durationDistanceWktSteps.forEach((workoutStepMesg, index) => {
                 expect(workoutStepMesg.durationDistance).toBe(distances[index]);
             });
+        });
+    });
+
+    describe("Accumulated Field Tests", () => {
+        test("Expanded Components which accumulate should accumulate", () => {
+            const stream = Stream.fromByteArray(Data.fitFileAccumulatedComponents);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+
+            expect(messages.recordMesgs[0].cycles).toBe(254)
+            expect(messages.recordMesgs[0].totalCycles).toBe(254)
+
+            expect(messages.recordMesgs[1].cycles).toBe(0)
+            expect(messages.recordMesgs[1].totalCycles).toBe(256)
+
+            expect(messages.recordMesgs[2].cycles).toBe(1)
+            expect(messages.recordMesgs[2].totalCycles).toBe(257)
+        });
+
+        test("Expanded Components which accumulate and have an initial non-expanded value should accumulate", () => {
+            const stream = Stream.fromByteArray(Data.fitFileCompressedSpeedAndDistanceWithInitialDistance);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+
+            // The first distance field is not expanded from a compressedSpeedDistance field
+            expect(messages.recordMesgs[0].distance).toBe(2)
+            expect(messages.recordMesgs[1].distance).toBe(264)
+            expect(messages.recordMesgs[2].distance).toBe(276)
         });
     });
 
@@ -540,7 +682,7 @@ describe("Decoder Tests", () => {
 
         });
     });
-    
+
     describe("Decode Include Unknown Data", () => {
         test("When decoding a file with the includeUnknownData flag set to true", () => {
             const buf = fs.readFileSync("test/data/WithGearChangeData.fit");
