@@ -68,6 +68,8 @@ The Read method accepts an optional options object that can be used to customize
 ````js
 const { messages, errors } = decoder.read({
     mesgListener: (messageNumber, message) => {},
+    mesgDefinitionListener: (mesgDefinition) => {},
+    fieldDescriptionListener: (key, developerDataIdMesg, fieldDescriptionMesg) => {},
     applyScaleAndOffset: true,
     expandSubFields: true,
     expandComponents: true,
@@ -97,6 +99,10 @@ const { messages, errors } = decoder.read({
 
 console.log(recordFields);
 ````
+#### mesgDefinitionListener: (mesgDefinition) => {}
+Optional callback function that can be used to inspect message defintions as they are decoded from the file.
+#### fieldDescriptionListener: (key, developerDataIdMesg, fieldDescriptionMesg) => {}
+Optional callback function that can be used to inspect developer field descriptions as they are decoded from the file.
 #### applyScaleAndOffset: true | false
 When true the scale and offset values as defined in the FIT Profile are applied to the raw field values.
 ````js
