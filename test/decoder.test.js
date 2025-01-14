@@ -1,13 +1,13 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright 2024 Garmin International, Inc.
+// Copyright 2025 Garmin International, Inc.
 // Licensed under the Flexible and Interoperable Data Transfer (FIT) Protocol License; you
 // may not use this file except in compliance with the Flexible and Interoperable Data
 // Transfer (FIT) Protocol License.
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+import { describe, expect, test, vi } from "vitest";
 
 import * as fs from "fs";
-import { jest } from "@jest/globals";
 
 import CRC from "../src/crc-calculator.js";
 import Decoder from "../src/decoder.js";
@@ -61,7 +61,7 @@ describe("Decoder Tests", () => {
             });
 
             test("When file is not a FIT checkIntegrity() returns false", () => {
-                const isFITMock = jest
+                const isFITMock = vi
                     .spyOn(Decoder.prototype, "isFIT")
                     .mockImplementationOnce(() => {
                         return false;
@@ -79,7 +79,7 @@ describe("Decoder Tests", () => {
             });
 
             test("When Header CRC is incorrect checkIntegrity() returns false", () => {
-                const calculateCRCMock = jest
+                const calculateCRCMock = vi
                     .spyOn(CRC, "calculateCRC")
                     .mockImplementationOnce(() => {
                         return false;
@@ -100,7 +100,7 @@ describe("Decoder Tests", () => {
 
     describe("Decoder FIT File Tests", () => {
         test("When file is not a FIT read() returns an error", () => {
-            const isFITMock = jest
+            const isFITMock = vi
                 .spyOn(Decoder.prototype, "isFIT")
                 .mockImplementationOnce(() => {
                     return false;
