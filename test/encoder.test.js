@@ -7,7 +7,7 @@
 
 import { describe, expect, test } from "vitest";
 
-import { Encoder, Profile } from "../src/index.js";
+import { Profile, Encoder, Stream, Decoder } from "../src/index.js";
 
 describe("Encoder Tests", () => {
     test("A file encoded with no messages should be 16 bytes long.", () => {
@@ -172,3 +172,81 @@ describe("Encoder Tests", () => {
         });
     });
 });
+
+describe("Encoder-Decoder Integration Tests", () => {
+    const DECODER_OPTIONS = {
+        convertDateTimesToDates: false, 
+    };
+
+    test("Can decode encoded file", () => {
+        const fileIdMesg = {
+            type: "activity",
+            manufacturer: "development",
+            product: 0,
+            timeCreated: 1000000000, // Wed, 08 Sep 2021 01:46:40 GMT
+            serialNumber: 1234,
+        };
+
+        try {
+            const encoder = new Encoder();
+            encoder.onMesg(Profile.MesgNum.FILE_ID, fileIdMesg);
+            const stream = Stream.fromByteArray(encoder.close());
+
+            const decoder = new Decoder(stream);
+
+            const { messages, errors, } = decoder.read(DECODER_OPTIONS);
+
+            expect(errors.length).toBe(0);
+
+            expect(messages.fileIdMesgs.length).toBe(1);
+            expect(messages.fileIdMesgs[0]).toMatchObject(fileIdMesg);
+        }
+        catch (error) {
+            console.error(`${error.name}: ${error.message} \n${JSON.stringify(error.cause, null, 3)}`);
+            throw error;
+        }
+    });
+
+    test("Can decode encoded message with expanded component fields", () => {
+        const hrMesg = {
+            timestamp: 840026841,
+            filteredBpm: [71, 72, 75, 77, 79, 81, 83, 83],
+            eventTimestamp12: [78, 91, 230, 94, 209, 70, 64, 135, 161, 245, 28, 254],
+        };
+
+        const expectedExpandedEventTimestamps = [
+            2.826171875,
+            3.5986328125,
+            4.341796875,
+            5.1064453125,
+            5.8125,
+            6.5234375,
+            7.2392578125,
+            7.9697265625,
+          ];
+
+        try {
+            const encoder = new Encoder();
+            encoder.onMesg(Profile.MesgNum.HR, hrMesg);
+            const stream = Stream.fromByteArray(encoder.close());
+
+            const decoder = new Decoder(stream);
+
+            const { messages, errors, } = decoder.read(DECODER_OPTIONS);
+
+            expect(errors.length).toBe(0);
+
+            expect(messages.hrMesgs.length).toBe(1);
+
+            // Decoded HR message should have expanded event timestamps
+            expect(messages.hrMesgs[0].eventTimestamp).toEqual(expectedExpandedEventTimestamps);
+
+            expect(messages.hrMesgs[0]).toMatchObject(hrMesg);
+        }
+        catch (error) {
+            console.error(`${error.name}: ${error.message} \n${JSON.stringify(error.cause, null, 3)}`);
+            throw error;
+        }
+    });
+});
+
