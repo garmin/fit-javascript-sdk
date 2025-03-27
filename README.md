@@ -4,7 +4,7 @@ The FIT SDK documentation is available at [https://developer.garmin.com/fit](htt
 ## FIT SDK Developer Forum
 Share your knowledge, ask questions, and get the latest FIT SDK news in the [FIT SDK Developer Forum](https://forums.garmin.com/developer/).
 ## FIT JavaScript SDK Requirements
-The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v14.0 or higher, or a browser with a compatible JavaScript runtime engine.
+The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v21.0 or higher, or a browser with a compatible JavaScript runtime engine.
 ## Install
 ```sh
 npm install @garmin/fitsdk
