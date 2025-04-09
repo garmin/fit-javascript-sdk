@@ -175,7 +175,7 @@ describe("Encoder Tests", () => {
 
 describe("Encoder-Decoder Integration Tests", () => {
     const DECODER_OPTIONS = {
-        convertDateTimesToDates: false, 
+        convertDateTimesToDates: false,
     };
 
     test("Can decode encoded file", () => {
@@ -223,7 +223,7 @@ describe("Encoder-Decoder Integration Tests", () => {
             6.5234375,
             7.2392578125,
             7.9697265625,
-          ];
+        ];
 
         try {
             const encoder = new Encoder();
@@ -247,6 +247,38 @@ describe("Encoder-Decoder Integration Tests", () => {
             console.error(`${error.name}: ${error.message} \n${JSON.stringify(error.cause, null, 3)}`);
             throw error;
         }
+    });
+
+    test("Encoder should round numeric, non-floating point fields with scale or offset", () => {
+        const recordMesg = {
+            timestamp: 1112368427,
+            heartRate: 123.56,
+            speed: 1.019,
+            distance: 10.789,
+        }
+
+        const encoder = new Encoder();
+        encoder.onMesg(Profile.MesgNum.RECORD, recordMesg);
+
+        const stream = Stream.fromByteArray(encoder.close());
+
+        const decoder = new Decoder(stream);
+
+        const { messages, errors, } = decoder.read(DECODER_OPTIONS);
+
+        expect(errors.length).toBe(0);
+        expect(messages.recordMesgs.length).toBe(1);
+
+        const decodedRecordMesg = messages.recordMesgs[0];
+
+        // An integer field with no scale or offset should be truncated
+        expect(decodedRecordMesg.heartRate).toEqual(123);
+
+        // An integer field with scale and offset should be rounded 1078.9 -(encoded)-> 1079 -(decoded)-> 10.79
+        expect(decodedRecordMesg.distance).toEqual(10.79);
+
+        expect(decodedRecordMesg.speed).toEqual(recordMesg.speed);
+        expect(decodedRecordMesg.enhancedSpeed).toEqual(recordMesg.speed);
     });
 });
 
