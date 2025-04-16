@@ -168,7 +168,7 @@ test("Can encode a FIT Activity file", () => {
         timestamp: timestamp,
         numSessions: 1,
         localTimestamp: timestamp + localTimestampOffset,
-        totalTimerTime: timestamp = startTime,
+        totalTimerTime: timestamp - startTime,
     });
 
     try {
