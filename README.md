@@ -9,7 +9,8 @@ The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v14.0 
 ```sh
 npm install @garmin/fitsdk
 ```
-## Usage
+## Decoder
+### Usage
 ````js
 import { Decoder, Stream, Profile, Utils } from '@garmin/fitsdk';
 
@@ -27,8 +28,6 @@ const { messages, errors } = decoder.read();
 console.log(errors);
 console.log(messages);
 ````
-## Decoder
-
 ### Constructor
 
 Decoder objects are created from Streams representing the binary FIT file data to be decoded. See [Creating Streams](#creatingstreams) for more information on constructing Stream objects.
@@ -37,16 +36,16 @@ Once a Decoder object is created it can be used to check that the Stream is a FI
 
 ### isFIT Method
 
-All valid FIT files should include a 12 or 14 byte file header. The 14 byte header is the preferred header size and the most common size used. Bytes 8–11 of the header contain the ASCII values ".FIT”. This string can easily be spotted when opening a binary FIT file in a text or hex editor.
+All valid FIT files should include a 12 or 14 byte file header. The 14 byte header is the preferred header size and the most common size used. Bytes 8–11 of the header contain the ASCII values ".FIT". This string can easily be spotted when opening a binary FIT file in a text or hex editor.
 
-```
+````bash
   Offset: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
 00000000: 0E 10 43 08 78 06 09 00 2E 46 49 54 96 85 40 00    ..C.x....FIT..@.
 00000010: 00 00 00 07 03 04 8C 04 04 86 07 04 86 01 02 84    ................
 00000020: 02 02 84 05 02 84 00 01 00 00 19 28 7E C5 95 B0    ...........(~E.0
-```
+````
 
-The isFIT method reads the file header and returns true if bytes 8–11 are equal to the ACSII values ".FIT”. isFIT provides a quick way to check that the file is a FIT file before attempting to decode the file.
+The isFIT method reads the file header and returns true if bytes 8–11 are equal to the ACSII values ".FIT". isFIT provides a quick way to check that the file is a FIT file before attempting to decode the file.
 
 The Decoder class includes a static and instance version of the isFIT method.
 
@@ -54,7 +53,7 @@ The Decoder class includes a static and instance version of the isFIT method.
 
 The checkIntegrity method performs three checks on a FIT file:
 
-1. Checks that bytes 8–11 of the header contain the ASCII values ".FIT”.
+1. Checks that bytes 8–11 of the header contain the ASCII values ".FIT".
 2. Checks that the total file size is equal to Header Size + Data Size + CRC Size.
 3. Reads the contents of the file, computes the CRC, and then checks that the computed CRC matches the file CRC.
 
@@ -83,7 +82,6 @@ const { messages, errors } = decoder.read({
 Optional callback function that can be used to inspect or manipulate messages after they are fully decoded and all the options have been applied. The message is mutable and we be returned from the Read method in the messages dictionary.
 
 Example mesgListener callback that tracks the field names across all Record messages.
-
 ````js
 const recordFields = new Set();
 
@@ -221,3 +219,65 @@ A convince method for converting FIT Epoch values to JavaScript Date objects.
 ````js
 const jsDate = Utils.convertDateTimeToDate(fitDateTime);
 ````
+## Encoder
+### Usage
+````js 
+// Import the SDK
+import { Encoder, Profile} from "@garmin/fitsdk";
+
+// Create an Encoder
+const encoder = new Encoder();
+
+//
+// Write messages to the output-stream
+//
+// The message data should match the format returned by
+// the Decoder. Field names should be camelCase. The fields 
+// definitions can be found in the Profile.
+//
+
+// Pass the MesgNum and message data as separate parameters to the onMesg() method
+encoder.onMesg(Profile.MesgNum.FILE_ID, {
+  manufacturer: "development",
+  product: 1,
+  timeCreated: new Date(),
+  type: "activity",
+});
+
+// The writeMesg() method expects the mesgNum to be included in the message data
+// Internally, writeMesg() calls onMesg()
+encoder.writeMesg({
+  mesgNum: Profile.MesgNum.FILE_ID,
+  manufacturer: "development",
+  product: 1,
+  timeCreated: new Date(),
+  type: "activity",
+});
+
+// Unknown values in the message will be ignored by the Encoder
+encoder.onMesg(Profile.MesgNum.FILE_ID, {
+  manufacturer: "development",
+  product: 1,
+  timeCreated: new Date(),
+  type: "activity",
+  customField: 12345, // This value will be ignored by the Encoder
+});
+
+// Subfield values in the message will be ignored by the Encoder
+encoder.onMesg(Profile.MesgNum.FILE_ID, {
+  manufacturer: "development",
+  product: 4440, // This is the main product field, which is a uint16
+  garminProduct: "edge1050", // This value will be ignored by the Encoder, use the main field value instead
+  timeCreated: new Date(),
+  type: "activity",
+});
+
+// Closing the encoder returns the file as an UInt8 Array
+const uint8Array = encoder.close();
+
+// Write the file to disk,
+import * as fs from "fs";
+fs.writeFileSync("example.fit", uint8Array);
+       
+````
+See the [Encode Activity Recipe](https://github.com/garmin/fit-javascript-sdk/blob/main/test/encode-activity-recipe.test.js) for a complete example of encoding a FIT Activity file usine the FIT JavaScript SDK.
