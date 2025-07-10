@@ -215,8 +215,16 @@ class Encoder {
                     throw new Error();
                 }
 
-                const scale = fieldDefinition.components.length > 1 ? FIELD_DEFAULT_SCALE : fieldDefinition.scale;
-                const offset = fieldDefinition.components.length > 1 ? FIELD_DEFAULT_OFFSET : fieldDefinition.offset;
+                let scale = fieldDefinition.components.length > 1 ? FIELD_DEFAULT_SCALE : fieldDefinition.scale;
+                let offset = fieldDefinition.components.length > 1 ? FIELD_DEFAULT_OFFSET : fieldDefinition.offset;
+
+                if (Array.isArray(scale)) {
+                    scale = scale[0];
+                }
+                if (Array.isArray(offset)) {
+                    offset = offset[0];
+                }
+
                 const hasScaleOrOffset = (scale != FIELD_DEFAULT_SCALE || offset != FIELD_DEFAULT_OFFSET);
 
                 if (hasScaleOrOffset) {
