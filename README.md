@@ -76,6 +76,7 @@ const { messages, errors } = decoder.read({
     convertDateTimesToDates: true,
     includeUnknownData: false,
     mergeHeartRates: true
+    decodeMemoGlobs: false,
 });
 ````
 #### mesgListener = (messageNumber, message) => {}
@@ -178,6 +179,10 @@ When true unknown field values are stored in the message using the field id as t
 ````
 #### mergeHeartRates: true | false
 When true automatically merge heart rate values from HR messages into the Record messages. This option requires the applyScaleAndOffset and expandComponents options to be enabled. This option has no effect on the Record messages when no HR messages are present in the decoded messages.
+
+#### decodeMemoGlobs: true | false
+When true, the decoder will reconstruct strings from memoGlob messages. Each reconstructed string will overwrite the targeted message field.
+
 ## Creating Streams
 Stream objects contain the binary FIT data to be decoded. Streams objects can be created from byte-arrays, ArrayBuffers, and Node.js Buffers. Internally the Stream class uses an ArrayBuffer to manage the byte stream.
 #### From a Byte Array
