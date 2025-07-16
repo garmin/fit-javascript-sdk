@@ -280,5 +280,31 @@ describe("Encoder-Decoder Integration Tests", () => {
         expect(decodedRecordMesg.speed).toEqual(recordMesg.speed);
         expect(decodedRecordMesg.enhancedSpeed).toEqual(recordMesg.speed);
     });
+
+    test("Encoder should correctly apply scale and offset to fields with singular expanded components", () => {
+        const recordMesg = {
+            heartRate: 55,
+            altitude: 100,
+            speed: 1.5
+        }
+
+        try {
+            const encoder = new Encoder();
+            encoder.onMesg(Profile.MesgNum.RECORD, recordMesg);
+            const uint8Array = encoder.close();
+
+            const decoder = new Decoder(Stream.fromByteArray(uint8Array));
+            const { messages, errors, } = decoder.read();
+
+            expect(errors.length).toBe(0);
+            expect(messages.recordMesgs.length).toBe(1);
+
+            expect(messages.recordMesgs[0]).toMatchObject(recordMesg);
+        }
+        catch (error) {
+            console.error(`${error.name}: ${error.message} \n${JSON.stringify(error.cause, null, 3)}`);
+            throw error;
+        }
+    });
 });
 
