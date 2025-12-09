@@ -161,6 +161,20 @@ describe("Decoder Tests", () => {
         });
     });
 
+    describe("Profile Version Tests", () => {
+        test("Profile version should be parsed and returned", () => {
+            const buf = fs.readFileSync("test/data/WithGearChangeData.fit");
+            const stream = Stream.fromBuffer(buf);
+            const decode = new Decoder(stream);
+            const { profileVersion, errors } = decode.read();
+            expect(errors.length).toBe(0);
+            expect(profileVersion).toEqual({
+                major: 21,
+                minor: 173
+            });
+        });
+    });
+
     describe("Skip Header Flag Tests", () => {
         test("File with invalid header should not fail when skipHeader: true", () => {
             const stream = Stream.fromByteArray(Data.fitFileShortInvalidHeader);
@@ -375,6 +389,16 @@ describe("Decoder Tests", () => {
             const { messages, errors } = decode.read();
             expect(errors.length).toBe(0);
             expect(messages.activityMesgs.length).toBe(1);
+        });
+
+        test("When Developer Data is a multibyte base type, it should be decoded correctly", () => {
+            const stream = Stream.fromByteArray(Data.fitFileShortMultibyteDevData);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+            expect(messages.sessionMesgs.length).toBe(1);
+
+            expect(messages.sessionMesgs[0].developerFields[0]).toBe(1234);
         });
     });
 

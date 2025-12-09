@@ -171,6 +171,55 @@ describe("Encoder Tests", () => {
             encoder.close();
         });
     });
+
+    test("Encoder writes base types with endianness bit", () => {
+        const fileIdMesg = {
+            product: 0x1234,
+        }
+
+        const encoder = new Encoder();
+        encoder.onMesg(Profile.MesgNum.FILE_ID, fileIdMesg);
+        const uint8Array = encoder.close();
+
+        // Base type UINT16 with endianness is 0x84
+        expect(uint8Array[22]).toBe(0x84);
+    })
+
+    test("Encoder writes developer data field base types with endianness bit", () => {
+        const developerDataIdMesg = {
+            developerDataIndex: 0,
+        };
+
+        const fieldDescriptionMesg = {
+            developerDataIndex: 0,
+            fieldDefinitionNumber: 1,
+            fitBaseTypeId: 0x84,
+        };
+
+        const fieldDescriptions = {
+            0: {
+                developerDataIdMesg,
+                fieldDescriptionMesg,
+            },
+        };
+
+        const sessionMesg = {
+            messageIndex: 2,
+            developerFields: {
+                0: 0x1234
+            },
+        };
+
+        const encoder = new Encoder({ fieldDescriptions });
+
+        encoder.onMesg(Profile.MesgNum.DEVELOPER_DATA_ID, developerDataIdMesg);
+        encoder.onMesg(Profile.MesgNum.FIELD_DESCRIPTION, fieldDescriptionMesg);
+        encoder.onMesg(Profile.MesgNum.SESSION, sessionMesg);
+        const uint8Array = encoder.close();
+
+        // Dev data FIT Base type UINT16 with endianness is 0x84
+        expect(uint8Array[43]).toBe(0x84);
+    });
 });
 
 describe("Encoder-Decoder Integration Tests", () => {
@@ -305,6 +354,50 @@ describe("Encoder-Decoder Integration Tests", () => {
             console.error(`${error.name}: ${error.message} \n${JSON.stringify(error.cause, null, 3)}`);
             throw error;
         }
+    });
+
+    test("Encoder should correctly encode and decode fields and developer fields with mulitbyte base types", () => {
+        const developerDataIdMesg = {
+            developerDataIndex: 0,
+        };
+
+        const fieldDescriptionMesg = {
+            developerDataIndex: 0,
+            fieldDefinitionNumber: 1,
+            fitBaseTypeId: 0x84,
+        };
+
+        const fileIdMesg = {
+            product: 0x5555,
+            developerFields: {
+                0: 0x1234
+            },
+        };
+
+        const fieldDescriptions = {
+            0: {
+                developerDataIdMesg,
+                fieldDescriptionMesg,
+            },
+        };
+
+        const encoder = new Encoder({ fieldDescriptions });
+
+        encoder.onMesg(Profile.MesgNum.DEVELOPER_DATA_ID, developerDataIdMesg);
+        encoder.onMesg(Profile.MesgNum.FIELD_DESCRIPTION, fieldDescriptionMesg);
+        encoder.onMesg(Profile.MesgNum.FILE_ID, fileIdMesg);
+
+        const stream = Stream.fromByteArray(encoder.close());
+        const decoder = new Decoder(stream);
+
+        const { messages, errors, } = decoder.read(DECODER_OPTIONS);
+
+        expect(errors.length).toBe(0);
+        expect(messages.fileIdMesgs.length).toBe(1);
+
+        const decodedFileIdMesg = messages.fileIdMesgs[0];
+        expect(decodedFileIdMesg.product).toBe(fileIdMesg.product);
+        expect(decodedFileIdMesg.developerFields[0]).toBe(fileIdMesg.developerFields[0]);
     });
 });
 
