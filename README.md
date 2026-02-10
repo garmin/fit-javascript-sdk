@@ -6,6 +6,8 @@ Share your knowledge, ask questions, and get the latest FIT SDK news in the [FIT
 ## FIT JavaScript SDK Requirements
 The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v14.0 or higher, or a browser with a compatible JavaScript runtime engine.
 ## Install
+The FIT JavaScript SDK is published as a NodeJS Pacakge on npm as [@garmin/fitsdk](https://www.npmjs.com/package/@garmin/fitsdk) and can be installed with the npm cli.
+
 ```sh
 npm install @garmin/fitsdk
 ```
@@ -77,6 +79,8 @@ const { messages, errors } = decoder.read({
     includeUnknownData: false,
     mergeHeartRates: true
     decodeMemoGlobs: false,
+    skipHeader: false,
+    dataOnly: false,
 });
 ````
 #### mesgListener = (messageNumber, message) => {}
@@ -183,6 +187,12 @@ When true automatically merge heart rate values from HR messages into the Record
 #### decodeMemoGlobs: true | false
 When true, the decoder will reconstruct strings from memoGlob messages. Each reconstructed string will overwrite the targeted message field.
 
+#### skipHeader: true | false
+When true, the decoder will read past the 14-byte header and ignore its contents. The decoder then assumes file data size from the size of the file's stream.
+
+#### dataOnly: true | false
+When true, the decoder will read the file as if the 14-byte header was not written. The decoder then assumes the file begins with a message definition and assumes file data size from the size of the file's stream.
+
 ## Creating Streams
 Stream objects contain the binary FIT data to be decoded. Streams objects can be created from byte-arrays, ArrayBuffers, and Node.js Buffers. Internally the Stream class uses an ArrayBuffer to manage the byte stream.
 #### From a Byte Array
@@ -226,7 +236,7 @@ const jsDate = Utils.convertDateTimeToDate(fitDateTime);
 ````
 ## Encoder
 ### Usage
-````js 
+````js
 // Import the SDK
 import { Encoder, Profile} from "@garmin/fitsdk";
 
@@ -237,7 +247,7 @@ const encoder = new Encoder();
 // Write messages to the output-stream
 //
 // The message data should match the format returned by
-// the Decoder. Field names should be camelCase. The fields 
+// the Decoder. Field names should be camelCase. The fields
 // definitions can be found in the Profile.
 //
 
@@ -283,6 +293,6 @@ const uint8Array = encoder.close();
 // Write the file to disk,
 import * as fs from "fs";
 fs.writeFileSync("example.fit", uint8Array);
-       
+
 ````
 See the [Encode Activity Recipe](https://github.com/garmin/fit-javascript-sdk/blob/main/test/encode-activity-recipe.test.js) for a complete example of encoding a FIT Activity file usine the FIT JavaScript SDK.
