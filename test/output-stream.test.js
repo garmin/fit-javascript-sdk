@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright 2025 Garmin International, Inc.
+// Copyright 2026 Garmin International, Inc.
 // Licensed under the Flexible and Interoperable Data Transfer (FIT) Protocol License; you
 // may not use this file except in compliance with the Flexible and Interoperable Data
 // Transfer (FIT) Protocol License.
@@ -314,5 +314,32 @@ describe("Can write strings to an OutputStream", () => {
         outputStream.writeString([".FIT", ".FIT"]);
 
         expect(outputStream.length).toBe(10);
+    });
+});
+
+describe("OutputStream handles array resizing", () => {
+    test("OutputStream throws when exceeding max byte length", () => {
+        const outputStream = new OutputStream({
+            initialByteLength: 4,
+            maxByteLength: 4,
+            resizeByBytes: 1,
+        });
+
+        expect(() => {
+            outputStream.writeUInt8([0, 1, 2, 3, 4,]);
+        }).toThrow(/Can not resize/);
+    });
+
+    test("OutputStream does not throw when meeting max byte length", () => {
+        const outputStream = new OutputStream({
+            initialByteLength: 4,
+            maxByteLength: 4,
+            resizeByBytes: 1,
+        });
+
+        outputStream.writeUInt8([0, 1, 2, 3]);
+
+        expect(outputStream.length).toBe(4);
+        expect(Array.from(outputStream.uint8Array)).toEqual([0, 1, 2, 3,]);
     });
 });
