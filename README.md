@@ -6,7 +6,7 @@ Share your knowledge, ask questions, and get the latest FIT SDK news in the [FIT
 ## FIT JavaScript SDK Requirements
 The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v14.0 or higher, or a browser with a compatible JavaScript runtime engine.
 ## Install
-The FIT JavaScript SDK is published as a NodeJS Pacakge on npm as [@garmin/fitsdk](https://www.npmjs.com/package/@garmin/fitsdk) and can be installed with the npm cli.
+The FIT JavaScript SDK is published as a NodeJS package on npm as [@garmin/fitsdk](https://www.npmjs.com/package/@garmin/fitsdk) and can be installed with the npm cli.
 
 ```sh
 npm install @garmin/fitsdk
@@ -47,7 +47,7 @@ All valid FIT files should include a 12 or 14 byte file header. The 14 byte head
 00000020: 02 02 84 05 02 84 00 01 00 00 19 28 7E C5 95 B0    ...........(~E.0
 ````
 
-The isFIT method reads the file header and returns true if bytes 8–11 are equal to the ACSII values ".FIT". isFIT provides a quick way to check that the file is a FIT file before attempting to decode the file.
+The isFIT method reads the file header and returns true if bytes 8–11 are equal to the ASCII values ".FIT". isFIT provides a quick way to check that the file is a FIT file before attempting to decode the file.
 
 The Decoder class includes a static and instance version of the isFIT method.
 
@@ -84,7 +84,7 @@ const { messages, errors } = decoder.read({
 });
 ````
 #### mesgListener = (messageNumber, message) => {}
-Optional callback function that can be used to inspect or manipulate messages after they are fully decoded and all the options have been applied. The message is mutable and we be returned from the Read method in the messages dictionary.
+Optional callback function that can be used to inspect or manipulate messages after they are fully decoded and all the options have been applied. The message is mutable and will be returned from the Read method in the messages dictionary.
 
 Example mesgListener callback that tracks the field names across all Record messages.
 ````js
@@ -103,7 +103,7 @@ const { messages, errors } = decoder.read({
 console.log(recordFields);
 ````
 #### mesgDefinitionListener: (mesgDefinition) => {}
-Optional callback function that can be used to inspect message defintions as they are decoded from the file.
+Optional callback function that can be used to inspect message definitions as they are decoded from the file.
 #### fieldDescriptionListener: (key, developerDataIdMesg, fieldDescriptionMesg) => {}
 Optional callback function that can be used to inspect developer field descriptions as they are decoded from the file.
 #### applyScaleAndOffset: true | false
@@ -230,7 +230,7 @@ The FIT_EPOCH_MS value can be used to convert FIT Epoch values to JavaScript Dat
 const jsDate = new Date(fitDateTime * 1000 + Utils.FIT_EPOCH_MS);
 ````
 ### convertDateTimeToDate Method
-A convince method for converting FIT Epoch values to JavaScript Date objects.
+A convenience method for converting FIT Epoch values to JavaScript Date objects.
 ````js
 const jsDate = Utils.convertDateTimeToDate(fitDateTime);
 ````
@@ -295,4 +295,4 @@ import * as fs from "fs";
 fs.writeFileSync("example.fit", uint8Array);
 
 ````
-See the [Encode Activity Recipe](https://github.com/garmin/fit-javascript-sdk/blob/main/test/encode-activity-recipe.test.js) for a complete example of encoding a FIT Activity file usine the FIT JavaScript SDK.
+See the [Encode Activity Recipe](https://github.com/garmin/fit-javascript-sdk/blob/main/test/encode-activity-recipe.test.js) for a complete example of encoding a FIT Activity file using the FIT JavaScript SDK.
