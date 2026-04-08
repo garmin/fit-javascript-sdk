@@ -12,7 +12,7 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "repository": {
     "type": "git",
-    "url": "https://github.com/garmin/fit-javascript-sdk"
+    "url": "git+https://github.com/garmin/fit-javascript-sdk.git"
   },
   "files": [
     "src/"
