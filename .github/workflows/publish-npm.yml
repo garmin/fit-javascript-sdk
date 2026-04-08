@@ -5,8 +5,8 @@ on:
     types: [created]
 
 permissions:
-  id-token: write  # Required for OIDC
-  contents: read 
+  id-token: write # Required for OIDC
+  contents: read
 
 jobs:
   build:
@@ -29,7 +29,6 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org/
       - name: Update npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@10.9.8
       - run: npm install --package-lock=false
       - run: npm publish
-    
