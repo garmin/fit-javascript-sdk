@@ -395,6 +395,81 @@ describe("Encoder-Decoder Integration Tests", () => {
         expect(decodedFileIdMesg.developerFields[0]).toBe(fileIdMesg.developerFields[0]);
     });
 
+    test("Can encode a datetime field with a JavaScript Date object", () => {
+        const date = new Date(Date.UTC(2024, 5, 15, 12, 0, 0)); // 2024-06-15T12:00:00Z
+        const expectedTimestamp = (date.getTime() - Utils.FIT_EPOCH_MS) / 1000;
+
+        const fileIdMesg = {
+            type: 4,
+            manufacturer: 1,
+            timeCreated: date,
+        };
+
+        const { messages, errors } = encodeThenDecodeMesgs(
+            [{ mesgNum: Profile.MesgNum.FILE_ID, mesg: fileIdMesg }],
+            { decoderOptions: DECODER_OPTIONS }
+        );
+
+        expect(errors.length).toBe(0);
+        expect(messages.fileIdMesgs[0].timeCreated).toBe(expectedTimestamp);
+    });
+
+    test("Encoding an ISO datetime string returns FIT Epoch", () => {
+        const encoder = new Encoder();
+
+        const fileIdMesg = {
+            type: 4,
+            timeCreated: "2021-09-21T01:46:40",
+        };
+
+        const { messages, errors } = encodeThenDecodeMesgs(
+            [{ mesgNum: Profile.MesgNum.FILE_ID, mesg: fileIdMesg }],
+            { decoderOptions: DECODER_OPTIONS }
+        );
+
+        expect(errors.length).toBe(0);
+        expect(messages.fileIdMesgs[0].timeCreated).toBe(0);
+    });
+
+    test("Fields not in the profile should be ignored by the encoder", () => {
+        const fileIdMesg = {
+            type: 4,
+            manufacturer: 1,
+            unknownField1: 123,
+            unknownField2: "test",
+        };
+
+        const { messages, errors } = encodeThenDecodeMesgs(
+            [{ mesgNum: Profile.MesgNum.FILE_ID, mesg: fileIdMesg }],
+            { decoderOptions: DECODER_OPTIONS }
+        );
+
+        expect(errors.length).toBe(0);
+        const fileId = messages.fileIdMesgs[0];
+        expect(fileId).toHaveProperty("type");
+        expect(fileId).toHaveProperty("manufacturer");
+        expect(fileId).not.toHaveProperty("unknownField1");
+        expect(fileId).not.toHaveProperty("unknownField2");
+    });
+
+    test("Subfields with main field should be ignored by the encoder", () => {
+        const fileIdMesg = {
+            manufacturer: "development",
+            product: 4440,
+            garminProduct: "edge1050", // subfield — ignored by the encoder
+        };
+
+        const { messages, errors } = encodeThenDecodeMesgs(
+            [{ mesgNum: Profile.MesgNum.FILE_ID, mesg: fileIdMesg }],
+            { decoderOptions: DECODER_OPTIONS }
+        );
+
+        expect(errors.length).toBe(0);
+        const fileId = messages.fileIdMesgs[0];
+        expect(fileId.product).toBe(fileIdMesg.product);
+        expect(fileId).not.toHaveProperty("garminProduct");
+    });
+
     describe("Base Type Encode-Decode Tests", () => {
         test.for([
             ["uint8", 123, 123],
@@ -413,6 +488,23 @@ describe("Encoder-Decoder Integration Tests", () => {
             ["sint64", -12345678901234n, -12345678901234n],
             ["uint64", 12345678901234n, 12345678901234n],
             ["uint64z", 12345678901234n, 12345678901234n],
+            // Array Tests
+            ["uint8", [12, 34, 56], [12, 34, 56]],
+            ["uint16", [12345, 54321], [12345, 54321]],
+            ["uint32", [1234567890, 987654321], [1234567890, 987654321]],
+            ["sint8", [-123, -12], [-123, -12]],
+            ["sint16", [-12345, -5432], [-12345, -5432]],
+            ["sint32", [-123456789, -98765432], [-123456789, -98765432]],
+            ["string", ["Test String 1", "Test String 2"], ["Test String 1", "Test String 2"]],
+            ["float32", [123.4, 432.1], [123.4, 432.1]],
+            ["float64", [123456.789012, 210987.654321], [123456.789012, 210987.654321]],
+            ["uint8z", [200, 150], [200, 150]],
+            ["uint16z", [60000, 30000], [60000, 30000]],
+            ["uint32z", [4000000000, 2000000000], [4000000000, 2000000000]],
+            ["byte", [0xDE, 0xAD], [0xDE, 0xAD]],
+            ["sint64", [-12345678901234n, -43210987654321n], [-12345678901234n, -43210987654321n]],
+            ["uint64", [12345678901234n, 43210987654321n], [12345678901234n, 43210987654321n]],
+            ["uint64z", [12345678901234n, 43210987654321n], [12345678901234n, 43210987654321n]],
             // Offset Tests
             ["uint8", 123, 123, { offset: 2 }],
             ["uint16", 12345, 12345, { offset: 2 }],
@@ -489,13 +581,12 @@ describe("Encoder-Decoder Integration Tests", () => {
             expect(errors.length).toBe(0);
             const mesg = messages.testMesgMesgs[0];
 
-            (fitBaseType === "string" || typeof mesg.testField === "bigint")
-                ? expect(mesg.testField).toBe(expectedValue)
-                : expect(mesg.testField).toBeCloseTo(expectedValue, 2);
+            expectValuesEqualGivenBaseType(fitBaseType, expectedValue, mesg.testField);
         });
 
         test.for([
             ["uint8", 123],
+            ["uint8", [12, 34, 56]],
             ["uint16", 12345],
             ["uint32", 1234567890],
             ["sint8", -123],
@@ -511,6 +602,23 @@ describe("Encoder-Decoder Integration Tests", () => {
             ["sint64", -12345678901234n],
             ["uint64", 12345678901234n],
             ["uint64z", 12345678901234n],
+            // Array Tests
+            ["uint8", [12, 34, 56]],
+            ["uint16", [12345, 54321]],
+            ["uint32", [1234567890, 987654321]],
+            ["sint8", [-123, -12]],
+            ["sint16", [-12345, -5432]],
+            ["sint32", [-123456789, -98765432]],
+            ["string", ["Test String 1", "Test String 2"]],
+            ["float32", [123.4, 432.1]],
+            ["float64", [123456.789012, 210987.654321]],
+            ["uint8z", [200, 150]],
+            ["uint16z", [60000, 30000]],
+            ["uint32z", [4000000000, 2000000000]],
+            ["byte", [0xDE, 0xAD]],
+            ["sint64", [-12345678901234n, -43210987654321n]],
+            ["uint64", [12345678901234n, 43210987654321n]],
+            ["uint64z", [12345678901234n, 43210987654321n]],
         ])("Encoding developer field of base type: %s", ([fitBaseType, expectedValue]) => {
             const DEV_FIELD_KEY = 0;
 
@@ -557,10 +665,24 @@ describe("Encoder-Decoder Integration Tests", () => {
 
             const actualValue = messages.sessionMesgs[0].developerFields[DEV_FIELD_KEY];
 
-            (fitBaseType === "string" || typeof actualValue === "bigint")
-                ? expect(actualValue).toBe(expectedValue)
-                : expect(actualValue).toBeCloseTo(expectedValue, 2);
+            expectValuesEqualGivenBaseType(fitBaseType, expectedValue, actualValue);
         });
     });
 });
+
+const expectValuesEqualGivenBaseType = (fitBaseType, expectedValues, actualValues) => {
+    expectedValues = Array.isArray(expectedValues) ? expectedValues : [expectedValues];
+    actualValues = Array.isArray(actualValues) ? actualValues : [actualValues];
+
+    expect(actualValues.length).toBe(expectedValues.length);
+
+    expectedValues.forEach((expected, index) => {
+        const actual = actualValues[index];
+
+        (fitBaseType === "string" || typeof expected === "bigint") ?
+            expect(actual).toEqual(expected) :
+            expect(actual).toBeCloseTo(expected, 2);
+    });
+};
+
 

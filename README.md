@@ -6,7 +6,7 @@ Share your knowledge, ask questions, and get the latest FIT SDK news in the [FIT
 ## FIT JavaScript SDK Requirements
 The FIT JavaScript SDK uses ECMAScript module syntax and requires Node.js v14.0 or higher, or a browser with a compatible JavaScript runtime engine.
 ## Install
-The FIT JavaScript SDK is published as a NodeJS Pacakge on npm as [@garmin/fitsdk](https://www.npmjs.com/package/@garmin/fitsdk) and can be installed with the npm cli.
+The FIT JavaScript SDK is published as a NodeJS Package on npm as [@garmin/fitsdk](https://www.npmjs.com/package/@garmin/fitsdk) and can be installed with the npm cli.
 
 ```sh
 npm install @garmin/fitsdk
@@ -47,7 +47,7 @@ All valid FIT files should include a 12 or 14 byte file header. The 14 byte head
 00000020: 02 02 84 05 02 84 00 01 00 00 19 28 7E C5 95 B0    ...........(~E.0
 ````
 
-The isFIT method reads the file header and returns true if bytes 8–11 are equal to the ACSII values ".FIT". isFIT provides a quick way to check that the file is a FIT file before attempting to decode the file.
+The isFIT method reads the file header and returns true if bytes 8–11 are equal to the ASCII values ".FIT". isFIT provides a quick way to check that the file is a FIT file before attempting to decode the file.
 
 The Decoder class includes a static and instance version of the isFIT method.
 
@@ -62,9 +62,9 @@ The checkIntegrity method performs three checks on a FIT file:
 A file must pass all three of these tests to be considered a valid FIT file. See the [IsFIT(), CheckIntegrity(), and Read() Methods recipe](/fit/cookbook/isfit-checkintegrity-read/) for use-cases where the checkIntegrity method should be used and cases when it might be better to avoid it.
 
 ### Read Method
-The Read method decodes all message from the input stream and returns an object containing an array of errors encountered during the decoding and a dictionary of decoded messages grouped by message type. Any exceptions encountered during decoding will be caught by the Read method and added to the array of errors.
+The Read method decodes all messages from the input stream and returns an object containing an array of errors encountered during the decoding and a dictionary of decoded messages grouped by message type. Any exceptions encountered during decoding will be caught by the Read method and added to the array of errors.
 
-The Read method accepts an optional options object that can be used to customize how field data is represented in the decoded messages. All options are enabled by default. Disabling options may speed up file decoding. Options may also be enabled or disable based on how the decoded data will be used.
+The Read method accepts an optional options object that can be used to customize how field data is represented in the decoded messages. All options are enabled by default. Disabling options may speed up file decoding. Options may also be enabled or disabled based on how the decoded data will be used.
 
 ````js
 const { messages, errors } = decoder.read({
@@ -77,14 +77,14 @@ const { messages, errors } = decoder.read({
     convertTypesToStrings: true,
     convertDateTimesToDates: true,
     includeUnknownData: false,
-    mergeHeartRates: true
+    mergeHeartRates: true,
     decodeMemoGlobs: false,
     skipHeader: false,
     dataOnly: false,
 });
 ````
 #### mesgListener = (messageNumber, message) => {}
-Optional callback function that can be used to inspect or manipulate messages after they are fully decoded and all the options have been applied. The message is mutable and we be returned from the Read method in the messages dictionary.
+Optional callback function that can be used to inspect or manipulate messages after they are fully decoded and all the options have been applied. The message is mutable and will be returned from the Read method in the messages dictionary.
 
 Example mesgListener callback that tracks the field names across all Record messages.
 ````js
@@ -97,13 +97,13 @@ const onMesg = (messageNumber, message) => {
 }
 
 const { messages, errors } = decoder.read({
-    mesgListener = onMesg
+    mesgListener: onMesg
 });
 
 console.log(recordFields);
 ````
 #### mesgDefinitionListener: (mesgDefinition) => {}
-Optional callback function that can be used to inspect message defintions as they are decoded from the file.
+Optional callback function that can be used to inspect message definitions as they are decoded from the file.
 #### fieldDescriptionListener: (key, developerDataIdMesg, fieldDescriptionMesg) => {}
 Optional callback function that can be used to inspect developer field descriptions as they are decoded from the file.
 #### applyScaleAndOffset: true | false
@@ -194,7 +194,7 @@ When true, the decoder will read past the 14-byte header and ignore its contents
 When true, the decoder will read the file as if the 14-byte header was not written. The decoder then assumes the file begins with a message definition and assumes file data size from the size of the file's stream.
 
 ## Creating Streams
-Stream objects contain the binary FIT data to be decoded. Streams objects can be created from byte-arrays, ArrayBuffers, and Node.js Buffers. Internally the Stream class uses an ArrayBuffer to manage the byte stream.
+Stream objects contain the binary FIT data to be decoded. Stream objects can be created from byte-arrays, ArrayBuffers, and Node.js Buffers. Internally the Stream class uses an ArrayBuffer to manage the byte stream.
 #### From a Byte Array
 ````js
 const streamFromByteArray = Stream.fromByteArray([0x0E, 0x10, 0xD9, 0x07, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x46, 0x49, 0x54, 0x91, 0x33, 0x00, 0x00]);
@@ -230,7 +230,7 @@ The FIT_EPOCH_MS value can be used to convert FIT Epoch values to JavaScript Dat
 const jsDate = new Date(fitDateTime * 1000 + Utils.FIT_EPOCH_MS);
 ````
 ### convertDateTimeToDate Method
-A convince method for converting FIT Epoch values to JavaScript Date objects.
+A convenience method for converting FIT Epoch values to JavaScript Date objects.
 ````js
 const jsDate = Utils.convertDateTimeToDate(fitDateTime);
 ````
@@ -295,4 +295,4 @@ import * as fs from "fs";
 fs.writeFileSync("example.fit", uint8Array);
 
 ````
-See the [Encode Activity Recipe](https://github.com/garmin/fit-javascript-sdk/blob/main/test/encode-activity-recipe.test.js) for a complete example of encoding a FIT Activity file usine the FIT JavaScript SDK.
+See the [Encode Activity Recipe](https://github.com/garmin/fit-javascript-sdk/blob/main/test/encode-activity-recipe.test.js) for a complete example of encoding a FIT Activity file using the FIT JavaScript SDK.

@@ -287,8 +287,8 @@ describe("When writing type X Outputstream has a length of Y", () => {
         [FIT.BaseType.SINT32, 1, 4,],
         [FIT.BaseType.UINT64, 1n, 8,],
         [FIT.BaseType.SINT64, 1n, 8,],
-        [FIT.BaseType.FLOAT32, 1, 4,],
-        [FIT.BaseType.FLOAT64, 1, 8,],
+        [FIT.BaseType.FLOAT32, 1.0, 4,],
+        [FIT.BaseType.FLOAT64, 1.0, 8,],
     ])("When writing a %s of value %i Outputstream has a length of %i", (type, value, expectedLength) => {
         const outputStream = new OutputStream();
 
@@ -299,13 +299,13 @@ describe("When writing type X Outputstream has a length of Y", () => {
 });
 
 describe("Can write strings to an OutputStream", () => {
-
     test("OutputStream should append null terminator when writing a string", () => {
         const outputStream = new OutputStream();
 
         outputStream.writeString(".FIT");
 
         expect(outputStream.length).toBe(5);
+        expect(outputStream.uint8Array[4]).toBe(FIT.NULL_TERMINATOR.charCodeAt(0));
     });
 
     test("Can write an array of strings to an OutputStream", () => {
@@ -314,6 +314,9 @@ describe("Can write strings to an OutputStream", () => {
         outputStream.writeString([".FIT", ".FIT"]);
 
         expect(outputStream.length).toBe(10);
+
+        expect(outputStream.uint8Array[4]).toBe(FIT.NULL_TERMINATOR.charCodeAt(0));
+        expect(outputStream.uint8Array[9]).toBe(FIT.NULL_TERMINATOR.charCodeAt(0));
     });
 });
 
