@@ -1,6 +1,6 @@
 {
   "name": "@garmin/fitsdk",
-  "version": "21.200.0",
+  "version": "21.201.0",
   "description": "FIT JavaScript SDK",
   "main": "src/index.js",
   "type": "module",
@@ -12,7 +12,7 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/garmin/fit-javascript-sdk.git"
+    "url": "https://github.com/garmin/fit-javascript-sdk"
   },
   "files": [
     "src/"
