@@ -10,23 +10,13 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import FIT from "./fit.js";
-
-const FIT_EPOCH_MS = 631065600000;
-
-const convertDateTimeToDate = (datetime) => {
-    return new Date((datetime ?? 0) * 1000 + FIT_EPOCH_MS);
-};
-
-const convertDateToDateTime = (date) => {
-    return (date.getTime() - FIT_EPOCH_MS) / 1000;
-};
-
-export default {
-    FIT_EPOCH_MS,
-    convertDateTimeToDate,
-    convertDateToDateTime,
-    FitBaseType: FIT.BaseType,
-    BaseTypeToFieldType: FIT.BaseTypeToFieldType,
-    FieldTypeToBaseType: FIT.FieldTypeToBaseType,
-};
+export * from './types/crc-calculator';
+export * from './types/decoder';
+export * from './types/encoder';
+export * from './types/mesg';
+export * from './types/mesgs';
+export * from './types/profile';
+export * from './types/stream';
+export * from './types/types';
+export { default as Types } from './types/types';
+export * from './types/utils';

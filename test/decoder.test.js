@@ -11,9 +11,12 @@ import * as fs from "fs";
 
 import CRC from "../src/crc-calculator.js";
 import Decoder from "../src/decoder.js";
+import FIT from "../src/fit.js";
+import Profile from "../src/profile.js";
 import Stream from "../src/stream.js";
 import Data from "./data/test-data.js";
 import HrData from "./data/test-data-expand-hr-mesgs.js";
+import { uint16LE, uint32LE, uint64LE, buildFit } from "./utils/fit-builder.js";
 
 describe("Decoder Tests", () => {
     describe("Decoder Constructor Tests", () => {
@@ -503,6 +506,14 @@ describe("Decoder Tests", () => {
             expect(messages.recordMesgs[1].enhancedSpeed).toBe(2.49)
         });
 
+        test("Component Expansion into existing field should not create an array", () => {
+            const stream = Stream.fromByteArray(Data.fitFileComponentFieldWithTarget);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read();
+            expect(errors.length).toBe(0);
+            expect(messages.recordMesgs[0].altitude).toBe(messages.recordMesgs[0].enhancedAltitude);
+        });
+
     });
 
     describe("Sub-Field Expansion Tests", () => {
@@ -725,5 +736,113 @@ describe("Decoder Tests", () => {
 
             expect(errors.length).toBe(0);
         });
+    });
+
+    describe("Decode Legacy Array Mode", () => {
+        test.each([
+            { description: "legacyArrayMode: true allows arrays for non-array fields", options: { legacyArrayMode: true }, isArray: true, expected: ["activity", "sport"] },
+            { description: "legacyArrayMode: false enforces profile arrays", options: { legacyArrayMode: false }, isArray: false, expected: "activity" },
+            { description: "legacyArrayMode defaults to false", options: undefined, isArray: false, expected: "activity" },
+        ])("$description", ({ options, isArray, expected }) => {
+            const stream = Stream.fromByteArray(Data.fitFileUndefinedFieldArray);
+            const decoder = new Decoder(stream);
+            const { messages, errors } = decoder.read(options);
+
+            expect(errors.length).toBe(0);
+            expect(Array.isArray(messages.fileIdMesgs[0].type)).toBe(isArray);
+            if (isArray) {
+                expect(messages.fileIdMesgs[0].type).toEqual(expected);
+            } else {
+                expect(messages.fileIdMesgs[0].type).toBe(expected);
+            }
+        });
+    });
+});
+
+const RECORD = Profile.MesgNum.RECORD;
+const MONITORING = Profile.MesgNum.MONITORING;
+const UINT8 = FIT.BaseType.UINT8;
+const UINT16 = FIT.BaseType.UINT16;
+const UINT32 = FIT.BaseType.UINT32;
+const UINT64 = FIT.BaseType.UINT64;
+const BYTE = FIT.BaseType.BYTE;
+
+const ALTITUDE_FIELD_NUM  = Profile.messages[Profile.MesgNum.RECORD].fields[2].num;
+const SPEED_FIELD_NUM = Profile.messages[Profile.MesgNum.RECORD].fields[6].num;
+const CYCLES_RECORD_FIELD_NUM = Profile.messages[Profile.MesgNum.RECORD].fields[18].num;
+const COMPRESSED_SPEED_DISTANCE_FIELD_NUM = Profile.messages[Profile.MesgNum.RECORD].fields[8].num;
+const CURRENT_ACTIVITY_TYPE_INTENSITY_FIELD_NUM = Profile.messages[Profile.MesgNum.MONITORING].fields[24].num;
+const CYCLES_MONITORING_FIELD_NUM = Profile.messages[Profile.MesgNum.MONITORING].fields[3].num;
+
+describe("Component Expansion By Base Type Tests", () => {
+    const parameters = [
+        {
+            label: "UINT16 speed -> UINT32 enhanced_speed, scale only",
+            mesgNum: RECORD, fieldDefs: [[SPEED_FIELD_NUM, 2, UINT16]], recordData: uint16LE(1390),
+            mesgKey: "recordMesgs", expected: { speed: 1.39, enhancedSpeed: 1.39 },
+        },
+        {
+            label: "UINT16 speed -> UINT32 enhanced_speed, integer result",
+            mesgNum: RECORD, fieldDefs: [[SPEED_FIELD_NUM, 2, UINT16]], recordData: uint16LE(5000),
+            mesgKey: "recordMesgs", expected: { speed: 5.0, enhancedSpeed: 5 },
+        },
+        {
+            label: "UINT16 altitude -> UINT32 enhanced_altitude, positive",
+            mesgNum: RECORD, fieldDefs: [[ALTITUDE_FIELD_NUM, 2, UINT16]], recordData: uint16LE(3000),
+            mesgKey: "recordMesgs", expected: { altitude: 100.0, enhancedAltitude: 100 },
+        },
+        {
+            label: "UINT16 altitude -> UINT32 enhanced_altitude, zero",
+            mesgNum: RECORD, fieldDefs: [[ALTITUDE_FIELD_NUM, 2, UINT16]], recordData: uint16LE(2500),
+            mesgKey: "recordMesgs", expected: { altitude: 0.0, enhancedAltitude: 0 },
+        },
+        {
+            label: "UINT16 altitude -> UINT32 enhanced_altitude, negative",
+            mesgNum: RECORD, fieldDefs: [[ALTITUDE_FIELD_NUM, 2, UINT16]], recordData: uint16LE(2000),
+            mesgKey: "recordMesgs", expected: { altitude: -100.0, enhancedAltitude: -100 },
+        },
+        {
+            label: "UINT8 cycles -> UINT32 total_cycles, accumulated",
+            mesgNum: RECORD, fieldDefs: [[CYCLES_RECORD_FIELD_NUM, 1, UINT8]], recordData: [100],
+            mesgKey: "recordMesgs", expected: { cycles: 100, totalCycles: 100 },
+        },
+        {
+            label: "UINT8 cycles -> UINT32 total_cycles, max non-invalid",
+            mesgNum: RECORD, fieldDefs: [[CYCLES_RECORD_FIELD_NUM, 1, UINT8]], recordData: [254],
+            mesgKey: "recordMesgs", expected: { cycles: 254, totalCycles: 254 },
+        },
+        {
+            label: "BYTE[3] compressed_speed_distance -> multi-component cascade",
+            mesgNum: RECORD, fieldDefs: [[COMPRESSED_SPEED_DISTANCE_FIELD_NUM, 3, BYTE]], recordData: [0x8B, 0x00, 0x08],
+            mesgKey: "recordMesgs", expected: { speed: 1.39, distance: 8, enhancedSpeed: 1.39 },
+        },
+        {
+            label: "BYTE -> enum activity_type + UINT8 intensity, multi-component",
+            mesgNum: MONITORING, fieldDefs: [[CURRENT_ACTIVITY_TYPE_INTENSITY_FIELD_NUM, 1, BYTE], [CYCLES_MONITORING_FIELD_NUM, 4, UINT32]],
+            recordData: [0x61, ...uint32LE(20)],
+            mesgKey: "monitoringMesgs", expected: { activityType: "running", intensity: 3, cycles: 10.0 },
+        },
+        {
+            label: "BYTE -> enum activity_type=walking, intensity=0",
+            mesgNum: MONITORING, fieldDefs: [[CURRENT_ACTIVITY_TYPE_INTENSITY_FIELD_NUM, 1, BYTE], [CYCLES_MONITORING_FIELD_NUM, 4, UINT32]],
+            recordData: [0x06, ...uint32LE(30)],
+            mesgKey: "monitoringMesgs", expected: { activityType: "walking", intensity: 0, cycles: 15.0 },
+        },
+    ];
+
+    test.each(parameters)("$label", (scenario) => {
+        const data = buildFit(scenario.mesgNum, scenario.fieldDefs, [scenario.recordData]);
+        const stream = Stream.fromByteArray(data);
+        const decoder = new Decoder(stream);
+        const { messages, errors } = decoder.read({ mergeHeartRates: false });
+        expect(errors.length).toBe(0);
+        const msg = messages[scenario.mesgKey][0];
+        for (const [key, val] of Object.entries(scenario.expected)) {
+            if (typeof val === "number" && !Number.isInteger(val)) {
+                expect(msg[key]).toBeCloseTo(val);
+            } else {
+                expect(msg[key]).toBe(val);
+            }
+        }
     });
 });

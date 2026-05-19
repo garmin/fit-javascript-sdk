@@ -53,7 +53,7 @@ describe("Stream Tests", () => {
 
         test("Read UInt8 Array", () => {
             const stream = Stream.fromByteArray([0x01, 0x02, 0x03]);
-            const values = stream.readValue(FIT.BaseType.UINT8, 3);
+            const values = stream.readValue(FIT.BaseType.UINT8, 3, { isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Uint8Array(values))).toEqual([1, 2, 3]);
         });
@@ -88,7 +88,7 @@ describe("Stream Tests", () => {
                 ...[0x02, 0x00],
                 ...[0x03, 0x00]
             ]);
-            const values = stream.readValue(FIT.BaseType.UINT16, 6);
+            const values = stream.readValue(FIT.BaseType.UINT16, 6, { isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Uint16Array(values))).toEqual([1, 2, 3]);
         });
@@ -124,7 +124,7 @@ describe("Stream Tests", () => {
                 ...[0x02, 0x00, 0x00, 0x00],
                 ...[0x03, 0x00, 0x00, 0x00]
             ]);
-            const values = stream.readValue(FIT.BaseType.UINT32, 12);
+            const values = stream.readValue(FIT.BaseType.UINT32, 12, { isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Uint32Array(values))).toEqual([1, 2, 3]);
         });
@@ -160,7 +160,7 @@ describe("Stream Tests", () => {
                 ...[0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                 ...[0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
             ]);
-            const values = stream.readValue(FIT.BaseType.UINT64, 24);
+            const values = stream.readValue(FIT.BaseType.UINT64, 24, { isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new BigUint64Array(values))).toEqual([1n, 2n, 3n]);
         });
@@ -196,7 +196,7 @@ describe("Stream Tests", () => {
                 ...[0x00, 0x00, 0x00, 0x40],
                 ...[0x00, 0x00, 0x40, 0x40]
             ]);
-            const values = stream.readValue(FIT.BaseType.FLOAT32, 12);
+            const values = stream.readValue(FIT.BaseType.FLOAT32, 12, { isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Float32Array(values))).toEqual([1.0, 2.0, 3.0]);
         });
@@ -219,15 +219,15 @@ describe("Stream Tests", () => {
                 ...[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40],
                 ...[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x40]
             ]);
-            const values = stream.readValue(FIT.BaseType.FLOAT64, 24);
+            const values = stream.readValue(FIT.BaseType.FLOAT64, 24, { isArray: true });
             expect(values.length).toBe(3);
             expect([1.0, 2.0, 3.0]).toEqual(Array.from(new Float64Array(values)));
         });
 
         test("Test Bytes Read", () => {
             const stream = Stream.fromByteArray([0xF]);
-            stream.readValue(FIT.BaseType.BYTE, 1)
-            const value = stream.bytesRead
+            stream.readValue(FIT.BaseType.BYTE, 1);
+            const value = stream.bytesRead;
             expect(value).toBe(1);
         });
 
@@ -238,7 +238,7 @@ describe("Stream Tests", () => {
         ];
         test.each(byteArrays)("Test Byte Array with Invalids", (byteArray) => {
             const stream = Stream.fromByteArray(byteArray.data);
-            const values = stream.readValue(FIT.BaseType.BYTE, byteArray.data.length);
+            const values = stream.readValue(FIT.BaseType.BYTE, byteArray.data.length, { isArray: true });
 
             expect(values).toEqual(byteArray.expected);
         });
@@ -254,13 +254,13 @@ describe("Stream Tests", () => {
     describe("Big Endian Tests", () => {
         test("Read UInt16", () => {
             const stream = Stream.fromByteArray([0x01, 0x02].reverse());
-            const value = stream.readUInt16({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readUInt16({ littleEndian: false });
             expect(value).toBe(0x0201);
         });
 
         test("Read Int16", () => {
             const stream = Stream.fromByteArray([0xFE, 0xFF].reverse());
-            const value = stream.readInt16({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readInt16({ littleEndian: false });
             expect(value).toBe(-2);
         });
 
@@ -270,20 +270,20 @@ describe("Stream Tests", () => {
                 ...[0x02, 0x00].reverse(),
                 ...[0x03, 0x00].reverse()
             ]);
-            const values = stream.readValue(FIT.BaseType.UINT16, 6, { endianness: Stream.BIG_ENDIAN });
+            const values = stream.readValue(FIT.BaseType.UINT16, 6, { littleEndian: false, isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Uint16Array(values))).toEqual([1, 2, 3]);
         });
 
         test("Read UInt32", () => {
             const stream = Stream.fromByteArray([0x01, 0x02, 0x03, 0x04].reverse());
-            const value = stream.readUInt32({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readUInt32({ littleEndian: false });
             expect(value).toBe(0x04030201);
         });
 
         test("Read Int32", () => {
             const stream = Stream.fromByteArray([0xFF, 0xFF, 0xFF, 0xFF].reverse());
-            const value = stream.readInt32({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readInt32({ littleEndian: false });
             expect(value).toBe(-1);
         });
 
@@ -293,20 +293,20 @@ describe("Stream Tests", () => {
                 ...[0x02, 0x00, 0x00, 0x00].reverse(),
                 ...[0x03, 0x00, 0x00, 0x00].reverse()
             ]);
-            const values = stream.readValue(FIT.BaseType.UINT32, 12, { endianness: Stream.BIG_ENDIAN });
+            const values = stream.readValue(FIT.BaseType.UINT32, 12, { littleEndian: false, isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Uint32Array(values))).toEqual([1, 2, 3]);
         });
 
         test("Read UInt64", () => {
             const stream = Stream.fromByteArray([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08].reverse());
-            const value = stream.readUInt64({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readUInt64({ littleEndian: false });
             expect(value).toBe(0x0807060504030201n);
         });
 
         test("Read Int64", () => {
             const stream = Stream.fromByteArray([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF].reverse());
-            const value = stream.readInt64({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readInt64({ littleEndian: false });
             expect(value).toBe(-1n);
         });
 
@@ -316,32 +316,32 @@ describe("Stream Tests", () => {
                 ...[0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00].reverse(),
                 ...[0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00].reverse()
             ]);
-            const values = stream.readValue(FIT.BaseType.UINT64, 24, { endianness: Stream.BIG_ENDIAN });
+            const values = stream.readValue(FIT.BaseType.UINT64, 24, { littleEndian: false, isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new BigUint64Array(values))).toEqual([1n, 2n, 3n]);
         });
 
         test("Read Float32 Positive", () => {
             const stream = Stream.fromByteArray([0x00, 0x00, 0x80, 0x3F].reverse());
-            const value = stream.readFloat32({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readFloat32({ littleEndian: false });
             expect(value).toBe(1);
         });
 
         test("Read Float32 Negative Value", () => {
             const stream = Stream.fromByteArray([0x00, 0x00, 0x80, 0xBF].reverse());
-            const value = stream.readFloat32({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readFloat32({ littleEndian: false });
             expect(value).toBe(-1);
         });
 
         test("Read Max Float32 Positive Value", () => {
             const stream = Stream.fromByteArray([0xFF, 0xFF, 0x7F, 0x7F].reverse());
-            const value = stream.readFloat32({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readFloat32({ littleEndian: false });
             expect(value).toBeCloseTo(3.4028234663852886e+38);
         });
 
         test("Read Max Float32 Negative Value", () => {
             const stream = Stream.fromByteArray([0xFF, 0xFF, 0x7F, 0xFF].reverse());
-            const value = stream.readFloat32({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readFloat32({ littleEndian: false });
             expect(value).toBeCloseTo(-3.4028234663852886e+38);
         });
 
@@ -351,20 +351,20 @@ describe("Stream Tests", () => {
                 ...[0x00, 0x00, 0x00, 0x40].reverse(),
                 ...[0x00, 0x00, 0x40, 0x40].reverse()
             ]);
-            const values = stream.readValue(FIT.BaseType.FLOAT32, 12, { endianness: Stream.BIG_ENDIAN });
+            const values = stream.readValue(FIT.BaseType.FLOAT32, 12, { littleEndian: false, isArray: true });
             expect(values.length).toBe(3);
             expect(Array.from(new Float32Array(values))).toEqual([1.0, 2.0, 3.0]);
         });
 
         test("Read Float64 Positive", () => {
             const stream = Stream.fromByteArray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x3F].reverse());
-            const value = stream.readFloat64({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readFloat64({ littleEndian: false });
             expect(value).toBe(1);
         });
 
         test("Read Float64 Negative", () => {
             const stream = Stream.fromByteArray([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0xBF].reverse());
-            const value = stream.readFloat64({ endianness: Stream.BIG_ENDIAN });
+            const value = stream.readFloat64({ littleEndian: false });
             expect(-1).toBe(value);
         });
 
@@ -374,7 +374,7 @@ describe("Stream Tests", () => {
                 ...[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40].reverse(),
                 ...[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x40].reverse()
             ]);
-            const values = stream.readValue(FIT.BaseType.FLOAT64, 24, { endianness: Stream.BIG_ENDIAN });
+            const values = stream.readValue(FIT.BaseType.FLOAT64, 24, { littleEndian: false, isArray: true });
             expect(values.length).toBe(3);
             expect([1.0, 2.0, 3.0]).toEqual(Array.from(new Float64Array(values)));
         });
@@ -412,15 +412,33 @@ describe("Stream Tests", () => {
         test("Read String Array w/o Null Terminator", () => {
             const stream = Stream.fromByteArray([0x2E, 0x46, 0x49, 0x54, 0x00, 0x2E, 0x46, 0x49, 0x54]);
             const values = stream.readString(9);
-            expect(values.length).toBe(2);
-            values.forEach(value => expect(value).toBe(".FIT"));
+            expect(values).toBe(".FIT");
         });
 
         test("Read String Array w/ Null Terminator", () => {
             const stream = Stream.fromByteArray([0x2E, 0x46, 0x49, 0x54, 0x00, 0x2E, 0x46, 0x49, 0x54, 0x00]);
             const values = stream.readString(10);
-            expect(values.length).toBe(2);
-            values.forEach(value => expect(value).toBe(".FIT"));
+            expect(values).toBe(".FIT");
+        });
+
+        describe("LegacyArrayMode String Tests", () => {
+            test("Read String Array w/o Null Terminator and Preserves Array", () => {
+                const stream = Stream.fromByteArray([0x2E, 0x46, 0x49, 0x54, 0x00, 0x2E, 0x46, 0x49, 0x54]);
+                stream.legacyArrayMode = true;
+
+                const values = stream.readString(9);
+                expect(values.length).toBe(2);
+                values.forEach(value => expect(value).toBe(".FIT"));
+            });
+
+            test("Read String Array w/ Null Terminator and Preserves Array", () => {
+                const stream = Stream.fromByteArray([0x2E, 0x46, 0x49, 0x54, 0x00, 0x2E, 0x46, 0x49, 0x54, 0x00]);
+                stream.legacyArrayMode = true;
+
+                const values = stream.readString(10);
+                expect(values.length).toBe(2);
+                values.forEach(value => expect(value).toBe(".FIT"));
+            });
         });
 
         test("fitFile_CA76065_WithBadUtf8CharactersTest", () => {
@@ -439,7 +457,10 @@ describe("Stream Tests", () => {
                 0x61, 0x63, 0x65, 0x2E, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x02, 0x03, 0x02, 0xFF,
                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
                 0x00, 0x00, 0x01, 0x00, 0x01, 0xD7, 0x7C, 0x37, 0x35, 0x25, 0x20, 0x65, 0x66]);
+
+            stream.legacyArrayMode = true;
             const values = stream.readString(200);
+
             expect(values.length).toBe(54);
             expect(values[0]).toBe("75% effort.");
             expect(values[6]).toBe("un"); // Not "����un"
