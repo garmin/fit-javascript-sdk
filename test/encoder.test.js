@@ -471,208 +471,278 @@ describe("Encoder-Decoder Integration Tests", () => {
     });
 
     describe("Base Type Encode-Decode Tests", () => {
-        test.for([
-            ["uint8", 123, 123],
-            ["uint16", 12345, 12345],
-            ["uint32", 1234567890, 1234567890],
-            ["sint8", -123, -123],
-            ["sint16", -12345, -12345],
-            ["sint32", -123456789, -123456789],
-            ["string", "Test String", "Test String"],
-            ["float32", 123.4, 123.4],
-            ["float64", 123456.789012, 123456.789012],
-            ["uint8z", 200, 200],
-            ["uint16z", 60000, 60000],
-            ["uint32z", 4000000000, 4000000000],
-            ["byte", 0xDE, 0xDE],
-            ["sint64", -12345678901234n, -12345678901234n],
-            ["uint64", 12345678901234n, 12345678901234n],
-            ["uint64z", 12345678901234n, 12345678901234n],
-            // Array Tests
-            ["uint8", [12, 34, 56], [12, 34, 56]],
-            ["uint16", [12345, 54321], [12345, 54321]],
-            ["uint32", [1234567890, 987654321], [1234567890, 987654321]],
-            ["sint8", [-123, -12], [-123, -12]],
-            ["sint16", [-12345, -5432], [-12345, -5432]],
-            ["sint32", [-123456789, -98765432], [-123456789, -98765432]],
-            ["string", ["Test String 1", "Test String 2"], ["Test String 1", "Test String 2"]],
-            ["float32", [123.4, 432.1], [123.4, 432.1]],
-            ["float64", [123456.789012, 210987.654321], [123456.789012, 210987.654321]],
-            ["uint8z", [200, 150], [200, 150]],
-            ["uint16z", [60000, 30000], [60000, 30000]],
-            ["uint32z", [4000000000, 2000000000], [4000000000, 2000000000]],
-            ["byte", [0xDE, 0xAD], [0xDE, 0xAD]],
-            ["sint64", [-12345678901234n, -43210987654321n], [-12345678901234n, -43210987654321n]],
-            ["uint64", [12345678901234n, 43210987654321n], [12345678901234n, 43210987654321n]],
-            ["uint64z", [12345678901234n, 43210987654321n], [12345678901234n, 43210987654321n]],
-            // Offset Tests
-            ["uint8", 123, 123, { offset: 2 }],
-            ["uint16", 12345, 12345, { offset: 2 }],
-            ["uint32", 1234567890, 1234567890, { offset: 2 }],
-            ["sint8", -123, -123, { offset: 2 }],
-            ["sint16", -12345, -12345, { offset: 2 }],
-            ["sint32", -123456789, -123456789, { offset: 2 }],
-            ["string", "Test String", "Test String", { offset: 2 }],
-            ["float32", 123.4, 123.4, { offset: 2 }],
-            ["float64", 123456.789012, 123456.789012, { offset: 2 }],
-            ["uint8z", 200, 200, { offset: 2 }],
-            ["uint16z", 60000, 60000, { offset: 2 }],
-            ["uint32z", 4000000000, 4000000000, { offset: 2 }],
-            ["byte", 0xDE, 0xDE, { offset: 2 }],
-            // Scale Tests
-            ["uint8", 123, 123, { scale: 2 }],
-            ["uint16", 12345, 12345, { scale: 2 }],
-            ["uint32", 1234567890, 1234567890, { scale: 2 }],
-            ["sint8", -12, -12, { scale: 2 }],
-            ["sint16", -1234, -1234, { scale: 2 }],
-            ["sint32", -12345, -12345, { scale: 2 }],
-            ["string", "Test String", "Test String", { scale: 2 }],
-            ["float32", 123.4, 123.4, { scale: 2 }],
-            ["float64", 123456.789012, 123456.789012, { scale: 2 }],
-            ["uint8z", 123, 123, { scale: 2 }],
-            ["uint16z", 1234, 1234, { scale: 2 }],
-            ["uint32z", 12345, 12345, { scale: 2 }],
-            ["byte", 0x01, 0x01, { scale: 2 }],
-            // 64 bit Scale/Offset Tests (Decoder Scale/Offset not applied)
-            ["sint64", -100n, -98n, { offset: 2 }],
-            ["uint64", 100n, 102n, { offset: 2 }],
-            ["uint64z", 100n, 102n, { offset: 2 }],
-            ["sint64", -500n, -1000n, { scale: 2 }],
-            ["uint64", 100n, 200n, { scale: 2 }],
-            ["uint64z", 100n, 200n, { scale: 2 }],
-            ["uint64", 123.45, 12345n, { scale: 100 }],
-            // Integer Fields Scale Rounding Tests
-            ["uint8", 12.21, 12.2, { scale: 10 }],
-            ["uint8", 12.77, 12.8, { scale: 10 }],
-            ["uint8", 12.5, 12.5, { scale: 10 }],
-            // String Numeric Value Tests
-            ["uint8", "123", 123],
-            ["float32", "123.456", 123.456],
-            ["float64", "123456.789012", 123456.789012],
-            ["uint64", "12345678901234", 12345678901234n],
-            ["sint64", "-12345678901234", -12345678901234n],
-            ["uint64", "1234567890123456789012345678901234567890", 12446928571455179474n],
-            // Overflow Mask Tests
-            ["uint8", 0x1234, 0x34],
-            ["sint8", 0x12FF, -1],
-            ["uint8z", 0x1234, 0x34],
-            ["uint16", 0x123456, 0x3456],
-            ["sint16", 0x12FFFF, -1],
-            ["uint16z", 0x123456, 0x3456],
-            ["uint32", 0x1234567899, 0x34567899],
-            ["sint32", 0x12FFFFFFFF, -1],
-            ["uint32z", 0x1234567899, 0x34567899],
-            ["byte", 0x1234, 0x34],
-            ["uint64", 0x12FFFFFFFFFFFFFFFFFFFFFFFFFn, 0xFFFFFFFFFFFFFFFFn],
-            ["uint64z", 0x12FFFFFFFFFFFFFFFFFFFFFFFFFFn, 0xFFFFFFFFFFFFFFFFn],
-            ["sint64", 0x12FFFFFFFFFFFFFFFFFFFFFFFFFFFFn, -1n],
-        ])("Encoding field of base type: %s %#", ([fitBaseType, value, expectedValue, { scale = 1, offset = 0 } = {}]) => {
+        const arrayTestData = [
+            { baseType: "uint8", values: [12, 34, 56] },
+            { baseType: "uint16", values: [12345, 54321] },
+            { baseType: "uint32", values: [1234567890, 987654321] },
+            { baseType: "sint8", values: [-123, -12] },
+            { baseType: "sint16", values: [-12345, -5432] },
+            { baseType: "sint32", values: [-123456789, -98765432] },
+            { baseType: "float32", values: [123.4, 432.1] },
+            { baseType: "float64", values: [123456.789012, 210987.654321] },
+            { baseType: "uint8z", values: [200, 150] },
+            { baseType: "uint16z", values: [60000, 30000] },
+            { baseType: "uint32z", values: [4000000000, 2000000000] },
+            { baseType: "byte", values: [0xDE, 0xAD] },
+            { baseType: "byte", values: [0xFF, 0xAB, 0xFF] },
+            { baseType: "sint64", values: [-12345678901234n, -43210987654321n] },
+            { baseType: "uint64", values: [12345678901234n, 43210987654321n] },
+            { baseType: "uint64z", values: [12345678901234n, 43210987654321n] },
+        ];
 
-            addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
-                0: { name: "testField", type: fitBaseType, baseType: fitBaseType, scale, offset, },
-            })
+        const stringFieldTestData = [
+            { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: true } },
+            { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: false } },
+            { baseType: "string", values: ["Test String 1"], fieldProperties: { array: false } },
+            { baseType: "string", values: "Test String 1", fieldProperties: { array: false } },
+        ];
 
-            const testMesg = {
-                testField: value,
-            }
+        const scaleTestData = [
+            { baseType: "uint8", values: 123, fieldProperties: { scale: 2 } },
+            { baseType: "uint16", values: 12345, fieldProperties: { scale: 2 } },
+            { baseType: "uint32", values: 1234567890, fieldProperties: { scale: 2 } },
+            { baseType: "sint8", values: -12, fieldProperties: { scale: 2 } },
+            { baseType: "sint16", values: -12345, fieldProperties: { scale: 2 } },
+            { baseType: "sint32", values: -123456789, fieldProperties: { scale: 2 } },
+            { baseType: "float32", values: 123.4, fieldProperties: { scale: 2 } },
+            { baseType: "float64", values: 123456.789012, fieldProperties: { scale: 2 } },
+        ];
 
-            const { messages, errors, } = encodeThenDecodeMesgs([{ mesgNum: DEFAULT_CUSTOM_MESG_NUM, mesg: testMesg }]);
+        const offsetTestData = [
+            { baseType: "uint8", values: 123, fieldProperties: { offset: 2 } },
+            { baseType: "uint16", values: 12345, fieldProperties: { offset: 2 } },
+            { baseType: "uint32", values: 1234567890, fieldProperties: { offset: 2 } },
+            { baseType: "sint8", values: -123, fieldProperties: { offset: 2 } },
+            { baseType: "sint16", values: -12345, fieldProperties: { offset: 2 } },
+            { baseType: "sint32", values: -123456789, fieldProperties: { offset: 2 } },
+            { baseType: "string", values: "Test String", fieldProperties: { offset: 2 } },
+            { baseType: "float32", values: 123.4, fieldProperties: { offset: 2 } },
+            { baseType: "float64", values: 123456.789012, fieldProperties: { offset: 2 } },
+            { baseType: "uint8z", values: 200, fieldProperties: { offset: 2 } },
+            { baseType: "uint16z", values: 60000, fieldProperties: { offset: 2 } },
+            { baseType: "uint32z", values: 4000000000, fieldProperties: { offset: 2 } },
+            { baseType: "byte", values: 0xDE, fieldProperties: { offset: 2 } },
+        ];
 
-            expect(errors.length).toBe(0);
-            const mesg = messages.testMesgMesgs[0];
+        const scaleOffset64bitTestData = [
+            { baseType: "sint64", values: -100n, offset: 2, expectedValue: -98n },
+            { baseType: "uint64", values: 100n, offset: 2, expectedValue: 102n },
+            { baseType: "uint64z", values: 100n, offset: 2, expectedValue: 102n },
+            { baseType: "sint64", values: -500n, scale: 2, expectedValue: -1000n },
+            { baseType: "uint64", values: 100n, scale: 2, expectedValue: 200n },
+            { baseType: "uint64z", values: 100n, scale: 2, expectedValue: 200n },
+            { baseType: "uint64", values: 123.45, scale: 100, expectedValue: 12345n },
+        ];
 
-            expectValuesEqualGivenBaseType(fitBaseType, expectedValue, mesg.testField);
+        const stringNumericValueTestData = [
+            { baseType: "uint8", value: "123", expectedValue: 123 },
+            { baseType: "float32", value: "123.456", expectedValue: 123.456 },
+            { baseType: "float64", value: "123456.789012", expectedValue: 123456.789012 },
+            { baseType: "uint64", value: "12345678901234", expectedValue: 12345678901234n },
+            { baseType: "sint64", value: "-12345678901234", expectedValue: -12345678901234n },
+            { baseType: "uint64", value: "1234567890123456789012345678901234567890", expectedValue: 12446928571455179474n },
+        ];
+
+        const overflowMaskTestData = [
+            { baseType: "uint8", value: 0x1234, expectedValue: 0x34 },
+            { baseType: "sint8", value: 0x12FF, expectedValue: -1 },
+            { baseType: "uint8z", value: 0x1234, expectedValue: 0x34 },
+            { baseType: "uint16", value: 0x123456, expectedValue: 0x3456 },
+            { baseType: "sint16", value: 0x12FFFF, expectedValue: -1 },
+            { baseType: "uint16z", value: 0x123456, expectedValue: 0x3456 },
+            { baseType: "uint32", value: 0x1234567899, expectedValue: 0x34567899 },
+            { baseType: "sint32", value: 0x12FFFFFFFF, expectedValue: -1 },
+            { baseType: "uint32z", value: 0x1234567899, expectedValue: 0x34567899 },
+            { baseType: "byte", value: 0x1234, expectedValue: 0x34 },
+            { baseType: "uint64", value: 0x12FFFFFFFFFFFFFFFFFFFFFFFFFn, expectedValue: 0xFFFFFFFFFFFFFFFFn },
+            { baseType: "uint64z", value: 0x12FFFFFFFFFFFFFFFFFFFFFFFFFFn, expectedValue: 0xFFFFFFFFFFFFFFFFn },
+            { baseType: "sint64", value: 0x12FFFFFFFFFFFFFFFFFFFFFFFFFFFFn, expectedValue: -1n },
+        ];
+
+        const developerFieldTestData = [
+            { baseType: "uint8", values: 123, },
+            { baseType: "uint16", values: 12345, },
+            { baseType: "uint32", values: 1234567890, },
+            { baseType: "sint8", values: -123, },
+            { baseType: "sint16", values: -12345, },
+            { baseType: "sint32", values: -123456789, },
+            { baseType: "string", values: "Test String", },
+            { baseType: "float32", values: 123.456, },
+            { baseType: "float64", values: 123456.789012, },
+            { baseType: "uint8z", values: 200, },
+            { baseType: "uint16z", values: 60000, },
+            { baseType: "uint32z", values: 4000000000, },
+            { baseType: "byte", values: 0xDE, },
+            { baseType: "sint64", values: -12345678901234n, },
+            { baseType: "uint64", values: 12345678901234n, },
+            { baseType: "uint64z", values: 12345678901234n, },
+            { baseType: "uint8", values: [12, 34, 56], fieldProperties: { array: true } },
+            { baseType: "uint16", values: [12345, 54321], fieldProperties: { array: true } },
+            { baseType: "uint32", values: [1234567890, 987654321], fieldProperties: { array: true } },
+            { baseType: "sint8", values: [-123, -12], fieldProperties: { array: true } },
+            { baseType: "sint16", values: [-12345, -5432], fieldProperties: { array: true } },
+            { baseType: "sint32", values: [-123456789, -98765432], fieldProperties: { array: true } },
+            { baseType: "float32", values: [123.4, 432.1], fieldProperties: { array: true } },
+            { baseType: "float64", values: [123456.789012, 210987.654321], fieldProperties: { array: true } },
+            { baseType: "uint8z", values: [200, 150], fieldProperties: { array: true } },
+            { baseType: "uint16z", values: [60000, 30000], fieldProperties: { array: true } },
+            { baseType: "uint32z", values: [4000000000, 2000000000], fieldProperties: { array: true } },
+            { baseType: "byte", values: [0xDE, 0xAD], fieldProperties: { array: true } },
+            { baseType: "sint64", values: [-12345678901234n, -43210987654321n], fieldProperties: { array: true } },
+            { baseType: "uint64", values: [12345678901234n, 43210987654321n], fieldProperties: { array: true } },
+            { baseType: "uint64z", values: [12345678901234n, 43210987654321n], fieldProperties: { array: true } },
+            { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: true } },
+            { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: false } },
+        ];
+
+        // MARK: LegacyArrayMode Tests
+        describe("LegacyArrayMode Tests", () => {
+            test.for([
+                { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: true } },
+                { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: false } },
+                ...arrayTestData.map(({ baseType, values }) => ({ baseType, values, fieldProperties: { array: true } })),
+                ...arrayTestData.map(({ baseType, values }) => ({ baseType, values, fieldProperties: { array: false } })),
+            ])("Legacy Encode-Decode $baseType when array is $fieldProperties.array", ({ baseType, values, fieldProperties = {} }) => {
+                const { messages, errors } = encodeDecodeFieldMesg(baseType, values, fieldProperties, { legacyArrayMode: true });
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, messages.testMesgMesgs[0].testField);
+            });
+
+            test.for(stringFieldTestData)("Legacy Encode-Decode string field", ({ baseType, values, fieldProperties = {} }) => {
+                const { messages, errors } = encodeDecodeFieldMesg(baseType, values, fieldProperties, { legacyArrayMode: true });
+                expect(errors.length).toBe(0);
+                expect(messages.testMesgMesgs[0].testField).toEqual(values?.length === 1 ? values[0] : values);
+            });
+
+            test.for(developerFieldTestData)("Legacy Encode-Decode developer field with base type $baseType array: $fieldProperties.array", ({ baseType, values, fieldProperties = {} }) => {
+                const { errors, actualValue } = encodeDecodeDevField(baseType, values, fieldProperties, { legacyArrayMode: false });
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, actualValue);
+            });
+
+            test.for([
+                { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: true } },
+                { baseType: "string", values: ["Test String 1", "Test String 2"], fieldProperties: { array: false } },
+                { baseType: "string", values: "Test String 1", fieldProperties: { array: false } },
+                { baseType: "uint8", values: [12, 34, 56], fieldProperties: { array: true } },
+                { baseType: "uint8", values: [12, 34, 56], fieldProperties: { array: false } },
+            ])("Legacy Encode-Decode developer field does not truncate $baseType non-profile arrays", ({ baseType, values, fieldProperties = {} }) => {
+                const { errors, actualValue } = encodeDecodeDevField(baseType, values, fieldProperties, { legacyArrayMode: true });
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, actualValue);
+            });
         });
 
-        test.for([
-            ["uint8", 123],
-            ["uint8", [12, 34, 56]],
-            ["uint16", 12345],
-            ["uint32", 1234567890],
-            ["sint8", -123],
-            ["sint16", -12345],
-            ["sint32", -123456789],
-            ["string", "Test String"],
-            ["float32", 123.456],
-            ["float64", 123456.789012],
-            ["uint8z", 200],
-            ["uint16z", 60000],
-            ["uint32z", 4000000000],
-            ["byte", 0xDE],
-            ["sint64", -12345678901234n],
-            ["uint64", 12345678901234n],
-            ["uint64z", 12345678901234n],
-            // Array Tests
-            ["uint8", [12, 34, 56]],
-            ["uint16", [12345, 54321]],
-            ["uint32", [1234567890, 987654321]],
-            ["sint8", [-123, -12]],
-            ["sint16", [-12345, -5432]],
-            ["sint32", [-123456789, -98765432]],
-            ["string", ["Test String 1", "Test String 2"]],
-            ["float32", [123.4, 432.1]],
-            ["float64", [123456.789012, 210987.654321]],
-            ["uint8z", [200, 150]],
-            ["uint16z", [60000, 30000]],
-            ["uint32z", [4000000000, 2000000000]],
-            ["byte", [0xDE, 0xAD]],
-            ["sint64", [-12345678901234n, -43210987654321n]],
-            ["uint64", [12345678901234n, 43210987654321n]],
-            ["uint64z", [12345678901234n, 43210987654321n]],
-        ])("Encoding developer field of base type: %s", ([fitBaseType, expectedValue]) => {
-            const DEV_FIELD_KEY = 0;
-
-            const developerDataIdMesg = {
-                applicationId: Array(16).fill(0),
-                applicationVersion: 1,
-                developerDataIndex: 0,
-            };
-
-            const fieldDescriptionMesg = {
-                developerDataIndex: 0,
-                fieldDefinitionNumber: 0,
-                fitBaseTypeId: Utils.FieldTypeToBaseType[fitBaseType],
-                fieldName: "Test Field",
-                units: "units",
-                nativeMesgNum: Profile.MesgNum.SESSION,
-            };
-
-            const fieldDescriptions = {
-                [DEV_FIELD_KEY]: {
-                    developerDataIdMesg,
-                    fieldDescriptionMesg,
-                },
-            };
-
-            const sessionMesg = {
-                messageIndex: 0,
-                sport: "running",
-                developerFields: {
-                    [DEV_FIELD_KEY]: expectedValue,
-                },
-            }
-
-            const mesgs = [
-                { mesgNum: Profile.MesgNum.DEVELOPER_DATA_ID, mesg: developerDataIdMesg, },
-                { mesgNum: Profile.MesgNum.FIELD_DESCRIPTION, mesg: fieldDescriptionMesg, },
-                { mesgNum: Profile.MesgNum.SESSION, mesg: sessionMesg, },
-            ];
-
-            const { messages, errors, } = encodeThenDecodeMesgs(mesgs, { fieldDescriptions, });
-
+        // MARK: String Tests
+        test.for(stringFieldTestData)("Encode-Decode string field", ({ baseType, values, fieldProperties = {} }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, values, fieldProperties);
             expect(errors.length).toBe(0);
-            expect(messages.sessionMesgs.length).toBe(1);
+            expect(messages.testMesgMesgs[0].testField).toBe(Array.isArray(values) ? values[0] : values);
+        });
 
-            const actualValue = messages.sessionMesgs[0].developerFields[DEV_FIELD_KEY];
+        // MARK: Array Tests
+        test.for([
+            ...arrayTestData.map(({ baseType, values }) => ({ baseType, values, fieldProperties: { array: true } })),
+            ...arrayTestData.map(({ baseType, values }) => ({ baseType, values, fieldProperties: { array: false } })),
+        ])("Encode-Decode $baseType when array is $fieldProperties.array", ({ baseType, values, fieldProperties = {} }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, values, fieldProperties);
+            expect(errors.length).toBe(0);
+            const expectedValues = fieldProperties.array ? values : values[0];
+            expectValuesEqualGivenBaseType(baseType, expectedValues, messages.testMesgMesgs[0].testField);
+        });
 
-            expectValuesEqualGivenBaseType(fitBaseType, expectedValue, actualValue);
+        // MARK: Scale Tests
+        test.for(scaleTestData)("Encode-Decode $baseType with scale", ({ baseType, values, fieldProperties }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, values, fieldProperties);
+            expect(errors.length).toBe(0);
+            expectValuesEqualGivenBaseType(baseType, values, messages.testMesgMesgs[0].testField);
+        });
+
+        // MARK: Offset Tests
+        test.for(offsetTestData)("Encode-Decode $baseType with offset", ({ baseType, values, fieldProperties = {} }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, values, fieldProperties);
+            expect(errors.length).toBe(0);
+            expectValuesEqualGivenBaseType(baseType, values, messages.testMesgMesgs[0].testField);
+        });
+
+        // MARK: 64 bit Scale/Offset Tests (Decoder Scale/Offset not applied)
+        test.for(scaleOffset64bitTestData)("Encode-Decode 64bit type $baseType does not apply scale/offset", ({ baseType, values, scale, offset, expectedValue }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, values, { scale, offset });
+            expect(errors.length).toBe(0);
+            expectValuesEqualGivenBaseType(baseType, expectedValue, messages.testMesgMesgs[0].testField);
+        });
+
+        // MARK: Integer Fields Scale Rounding Tests
+        test.for([
+            { baseType: "uint8", value: 12.21, scale: 10, expectedValue: 12.2 },
+            { baseType: "uint8", value: 12.77, scale: 10, expectedValue: 12.8 },
+            { baseType: "uint8", value: 12.5, scale: 10, expectedValue: 12.5 },
+        ])("Encode-Decode integer $baseType with scale rounds to nearest value", ({ baseType, value, scale, expectedValue }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, value, { scale });
+            expect(errors.length).toBe(0);
+            expectValuesEqualGivenBaseType(baseType, expectedValue, messages.testMesgMesgs[0].testField);
+        });
+
+        // MARK: String Numeric Value Tests
+        test.for(stringNumericValueTestData)("Encode-Decode $baseType with string numeric value", ({ baseType, value, expectedValue }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, value);
+            expect(errors.length).toBe(0);
+            expectValuesEqualGivenBaseType(baseType, expectedValue, messages.testMesgMesgs[0].testField);
+        });
+
+        // MARK: Overflow Mask Tests
+        test.for(overflowMaskTestData)("Encode-Decode $baseType with overflow value applies overflow mask", ({ baseType, value, expectedValue }) => {
+            const { messages, errors } = encodeDecodeFieldMesg(baseType, value);
+            expect(errors.length).toBe(0);
+            expectValuesEqualGivenBaseType(baseType, expectedValue, messages.testMesgMesgs[0].testField);
+        });
+
+        // MARK: Developer Field Tests
+        describe("Developer Field Tests", () => {
+            test.for(developerFieldTestData)("Encode-Decode developer field with base type $baseType array: $fieldProperties.array", ({ baseType, values, fieldProperties = {} }) => {
+                const { errors, actualValue } = encodeDecodeDevField(baseType, values, fieldProperties);
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, actualValue);
+            });
+
+            test.for(arrayTestData)("Encode-Decode developer field $baseType non-profile arrays are not truncated", ({ baseType, values, fieldProperties = {} }) => {
+                const { errors, actualValue } = encodeDecodeDevField(baseType, values, fieldProperties);
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, actualValue);
+            });
+
+            test.for([
+                { baseType: "string", values: ["Test String 1", "Test String 2"] },
+                ...arrayTestData,
+            ])("LegacyArrayMode - Encoding developer array field of base type: $baseType preserves array", ({ baseType, values, fieldProperties = {} }) => {
+                const { errors, actualValue } = encodeDecodeDevField(baseType, values, fieldProperties, { legacyArrayMode: true });
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, actualValue);
+            });
+
+            test.for([
+                { baseType: "string", values: ["Test String 1", "Test String 2"] },
+                ...arrayTestData,
+            ])("Encoding developer array field of base type: $baseType preserves array", ({ baseType, values, fieldProperties = {} }) => {
+                const { errors, actualValue } = encodeDecodeDevField(baseType, values, fieldProperties);
+                expect(errors.length).toBe(0);
+                expectValuesEqualGivenBaseType(baseType, values, actualValue);
+            });
         });
     });
 });
 
 const expectValuesEqualGivenBaseType = (fitBaseType, expectedValues, actualValues) => {
-    expectedValues = Array.isArray(expectedValues) ? expectedValues : [expectedValues];
-    actualValues = Array.isArray(actualValues) ? actualValues : [actualValues];
+    const isExpectedArray = Array.isArray(expectedValues);
+
+    expect(Array.isArray(actualValues)).toBe(isExpectedArray);
+
+    if (!isExpectedArray) {
+        (fitBaseType === "string" || typeof expectedValues === "bigint") ?
+            expect(actualValues).toEqual(expectedValues) :
+            expect(actualValues).toBeCloseTo(expectedValues, 2);
+        return;
+    }
 
     expect(actualValues.length).toBe(expectedValues.length);
 
@@ -683,6 +753,43 @@ const expectValuesEqualGivenBaseType = (fitBaseType, expectedValues, actualValue
             expect(actual).toEqual(expected) :
             expect(actual).toBeCloseTo(expected, 2);
     });
+};
+
+const encodeDecodeFieldMesg = (baseType, value, fieldProperties = {}, { legacyArrayMode = false } = {}) => {
+    addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+        0: { name: "testField", type: baseType, baseType, ...fieldProperties, },
+    });
+    const { messages, errors, } = encodeThenDecodeMesgs(
+        [{ mesgNum: DEFAULT_CUSTOM_MESG_NUM, mesg: { testField: value } }],
+        { decoderOptions: { legacyArrayMode } },
+    );
+    return { messages, errors };
+};
+
+const encodeDecodeDevField = (baseType, value, fieldProperties = {}, { legacyArrayMode = false } = {}) => {
+    const DEV_FIELD_KEY = 0;
+    const developerDataIdMesg = {
+        applicationId: Array(16).fill(0),
+        applicationVersion: 1,
+        developerDataIndex: 0,
+    };
+    const fieldDescriptionMesg = {
+        developerDataIndex: 0,
+        fieldDefinitionNumber: 0,
+        fitBaseTypeId: Utils.FieldTypeToBaseType[baseType],
+        fieldName: "Test Field",
+        units: "units",
+        nativeMesgNum: Profile.MesgNum.SESSION,
+        array: Number(fieldProperties.array || false),
+    };
+    const fieldDescriptions = { [DEV_FIELD_KEY]: { developerDataIdMesg, fieldDescriptionMesg } };
+    const mesgs = [
+        { mesgNum: Profile.MesgNum.DEVELOPER_DATA_ID, mesg: developerDataIdMesg, },
+        { mesgNum: Profile.MesgNum.FIELD_DESCRIPTION, mesg: fieldDescriptionMesg, },
+        { mesgNum: Profile.MesgNum.SESSION, mesg: { messageIndex: 0, sport: "running", developerFields: { [DEV_FIELD_KEY]: value } }, },
+    ];
+    const { messages, errors, } = encodeThenDecodeMesgs(mesgs, { fieldDescriptions, decoderOptions: { legacyArrayMode } });
+    return { messages, errors, actualValue: messages.sessionMesgs?.[0]?.developerFields?.[DEV_FIELD_KEY] };
 };
 
 
