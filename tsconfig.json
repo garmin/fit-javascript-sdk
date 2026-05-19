@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "allowJs": true,
+        "strict": true,
+        "noEmit": true,
+        "types": [
+            "node"
+        ]
+    },
+    "include": [
+        "src/types/**/*.d.ts",
+        "src/*.js",
+        "test/**/*.test.ts",
+        "test/**/*.test-d.ts"
+    ],
+}
