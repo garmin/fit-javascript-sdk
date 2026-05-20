@@ -81,6 +81,7 @@ const { messages, errors } = decoder.read({
     decodeMemoGlobs: false,
     skipHeader: false,
     dataOnly: false,
+    legacyArrayMode: false, // Deprecated
 });
 ````
 #### mesgListener = (messageNumber, message) => {}
@@ -192,6 +193,16 @@ When true, the decoder will read past the 14-byte header and ignore its contents
 
 #### dataOnly: true | false
 When true, the decoder will read the file as if the 14-byte header was not written. The decoder then assumes the file begins with a message definition and assumes file data size from the size of the file's stream.
+
+#### legacyArrayMode: true | false *(Deprecated)*
+legacyArrayMode is deprecated and will be removed by EOY 2026.
+
+When false *(default)*, the decoder will adhere to the profile for array fields.
+
+Array fields will always be returned as arrays, even when there is only one element
+Non-array fields will always return a single value, even when there are multiple values
+Setting legacyArrayMode option to true will revert to pre-v21.205 behavior
+
 
 ## Creating Streams
 Stream objects contain the binary FIT data to be decoded. Stream objects can be created from byte-arrays, ArrayBuffers, and Node.js Buffers. Internally the Stream class uses an ArrayBuffer to manage the byte stream.
