@@ -7,6 +7,7 @@ on:
 permissions:
   id-token: write # Required for OIDC provenance
   contents: read
+  attestations: write
 
 jobs:
   build:
@@ -32,4 +33,10 @@ jobs:
         run: npm install -g npm@11.5.1
       - run: npm --version
       - run: npm install --package-lock=false
-      - run: npm publish
+      - name: Pack
+        run: npm pack
+      - name: Attest
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: "*.tgz"
+      - run: npm publish --provenance
