@@ -17,6 +17,7 @@ import Stream from "../src/stream.js";
 import Data from "./data/test-data.js";
 import HrData from "./data/test-data-expand-hr-mesgs.js";
 import { uint16LE, uint32LE, uint64LE, buildFit } from "./utils/fit-builder.js";
+import { encodeThenDecodeMesgs } from "./testUtils.js";
 
 describe("Decoder Tests", () => {
     describe("Decoder Constructor Tests", () => {
@@ -755,6 +756,38 @@ describe("Decoder Tests", () => {
             } else {
                 expect(messages.fileIdMesgs[0].type).toBe(expected);
             }
+        });
+    });
+
+    describe("Invalid Value Tests", () => {
+        const invalidValueCases = [
+            { label: "Enum", recordMesg: { activityType: FIT.BaseTypeDefinitions[FIT.BaseType.ENUM].invalid } },
+            { label: "SInt8", recordMesg: { left_pco: FIT.BaseTypeDefinitions[FIT.BaseType.SINT8].invalid } },
+            { label: "UInt8", recordMesg: { cadence: FIT.BaseTypeDefinitions[FIT.BaseType.UINT8].invalid } },
+            { label: "SInt16", recordMesg: { grade: FIT.BaseTypeDefinitions[FIT.BaseType.SINT16].invalid / 100 } },
+            { label: "UInt16", recordMesg: { power: FIT.BaseTypeDefinitions[FIT.BaseType.UINT16].invalid } },
+            { label: "SInt32", recordMesg: { positionLat: FIT.BaseTypeDefinitions[FIT.BaseType.SINT32].invalid } },
+            { label: "UInt32", recordMesg: { timestamp: FIT.BaseTypeDefinitions[FIT.BaseType.UINT32].invalid } },
+        ];
+
+        test.each(invalidValueCases)("$label: Fields that have invalid values are dropped", ({ label, recordMesg }) => {
+            const { messages, errors } = encodeThenDecodeMesgs([
+                { mesgNum: Profile.MesgNum.RECORD, mesg: { ...recordMesg, heartRate: 50 } },
+            ]);
+
+            // The invalid fields should not be present
+            expect(messages.recordMesgs).toStrictEqual([{ heartRate: 50 }]);
+        });
+
+        test("Fields with components that have invalid values are dropped", () => {
+            const { messages, errors } = encodeThenDecodeMesgs([
+                { mesgNum: Profile.MesgNum.RECORD, mesg: { speed: 65.535, heartRate: 60 } },
+            ]);
+
+            expect(errors.length).toBe(0);
+
+            // The invalid speed field and its component should not be present
+            expect(messages.recordMesgs).toStrictEqual([{ heartRate: 60 }]);
         });
     });
 });
