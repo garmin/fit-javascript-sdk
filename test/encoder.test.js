@@ -238,6 +238,77 @@ describe("Encoder Tests", () => {
             encodeMesgs([{ mesgNum: DEFAULT_CUSTOM_MESG_NUM, mesg }]);
         }).toThrowError();
     });
+
+    describe("Null and FIT Invalid Value Encoding Tests", () => {
+        const FIELD_DATA_OFFSET = 24;
+
+        const nullTestData = [
+            { baseType: "uint8" },
+            { baseType: "sint8" },
+            { baseType: "uint16" },
+            { baseType: "sint16" },
+            { baseType: "uint32" },
+            { baseType: "sint32" },
+            { baseType: "float32" },
+            { baseType: "float64" },
+            { baseType: "uint8z" },
+            { baseType: "uint16z" },
+            { baseType: "uint32z" },
+            { baseType: "byte" },
+            { baseType: "sint64" },
+            { baseType: "uint64" },
+            { baseType: "uint64z" },
+        ];
+
+        test.for(nullTestData)(
+            "Encoding $baseType with a null value throws",
+            ({ baseType }) => {
+                addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                    0: { name: "testField", type: baseType, baseType },
+                });
+
+                expect(() => encodeMesgs([{
+                    mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                    mesg: { testField: null },
+                }])).toThrowError();
+            }
+        );
+
+        const fitInvalidValueTestData = [
+            { baseType: "uint8", value: 0xFF, invalidBytes: [0xFF] },
+            { baseType: "sint8", value: 0x7F, invalidBytes: [0x7F] },
+            { baseType: "uint16", value: 0xFFFF, invalidBytes: [0xFF, 0xFF] },
+            { baseType: "sint16", value: 0x7FFF, invalidBytes: [0xFF, 0x7F] },
+            { baseType: "uint32", value: 0xFFFFFFFF, invalidBytes: [0xFF, 0xFF, 0xFF, 0xFF] },
+            { baseType: "sint32", value: 0x7FFFFFFF, invalidBytes: [0xFF, 0xFF, 0xFF, 0x7F] },
+            { baseType: "uint8z", value: 0x00, invalidBytes: [0x00] },
+            { baseType: "uint16z", value: 0x0000, invalidBytes: [0x00, 0x00] },
+            { baseType: "uint32z", value: 0x00000000, invalidBytes: [0x00, 0x00, 0x00, 0x00] },
+            { baseType: "byte", value: 0xFF, invalidBytes: [0xFF] },
+            { baseType: "sint64", value: 0x7FFFFFFFFFFFFFFFn, invalidBytes: [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F] },
+            { baseType: "uint64", value: 0xFFFFFFFFFFFFFFFFn, invalidBytes: [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF] },
+            { baseType: "uint64z", value: 0x0000000000000000n, invalidBytes: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] },
+        ];
+
+        test.for(fitInvalidValueTestData)(
+            "Encoding $baseType with the FIT invalid value writes expected invalid bytes to the byte array",
+            ({ baseType, value, invalidBytes }) => {
+                addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                    0: { name: "testField", type: baseType, baseType },
+                });
+
+                const uint8Array = encodeMesgs([{
+                    mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                    mesg: { testField: value },
+                }]);
+
+                const fieldBytes = Array.from(
+                    uint8Array.slice(FIELD_DATA_OFFSET, FIELD_DATA_OFFSET + invalidBytes.length)
+                );
+                expect(fieldBytes).toEqual(invalidBytes);
+            }
+        );
+    });
 });
 
 describe("Encoder-Decoder Integration Tests", () => {
@@ -393,6 +464,21 @@ describe("Encoder-Decoder Integration Tests", () => {
         const decodedFileIdMesg = messages.fileIdMesgs[0];
         expect(decodedFileIdMesg.product).toBe(fileIdMesg.product);
         expect(decodedFileIdMesg.developerFields[0]).toBe(fileIdMesg.developerFields[0]);
+    });
+
+    test.for([
+        { mesg: "weightScale", field: "weight", value: 12.34, expectedValue: 12.34 },
+        { mesg: "deviceInfo", field: "deviceIndex", value: "creator", expectedValue: "creator" },
+        { mesg: "session", field: "messageIndex", value: "mask", expectedValue: "mask" },
+    ])("Non-enum fields round-trip correctly: $mesg.$field", ({ mesg, field, value, expectedValue }) => {
+        const mesgNumKey = mesg.replace(/([A-Z])/g, "_$1").toUpperCase();
+        const { messages, errors } = encodeThenDecodeMesgs(
+            [{ mesgNum: Profile.MesgNum[mesgNumKey], mesg: { [field]: value } }],
+        );
+
+        expect(errors.length).toBe(0);
+
+        expect(messages[`${mesg}Mesgs`][0][field]).toBe(expectedValue);
     });
 
     test("Can encode a datetime field with a JavaScript Date object", () => {
