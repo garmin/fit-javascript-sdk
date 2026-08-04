@@ -1,6 +1,6 @@
 {
     "name": "@garmin/fitsdk",
-    "version": "21.208.0",
+    "version": "21.212.0",
     "description": "FIT JavaScript SDK",
     "main": "src/index.js",
     "types": "src/index.d.ts",
@@ -19,7 +19,10 @@
     ],
     "devDependencies": {
         "@types/node": "^22.0.0",
-        "typescript": "^5.0.0",
-        "vitest": "^4.1.5"
+        "typescript": "5.9.3",
+        "vitest": "4.1.5"
+    },
+    "overrides": {
+        "vite": "8.0.16"
     }
 }
