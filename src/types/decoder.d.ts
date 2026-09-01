@@ -10,9 +10,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { Stream } from "./stream";
-import { Mesg } from "./mesg";
-import { FitMessages, DeveloperDataIdMesg, FieldDescriptionMesg } from "./mesgs";
+import { Stream } from "./stream.js";
+import { Mesg } from "./mesg.js";
+import { FitMessages, DeveloperDataIdMesg, FieldDescriptionMesg } from "./mesgs.js";
 
 /** Decodes FIT binary data from a {@link Stream}. */
 export class Decoder {

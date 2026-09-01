@@ -10,7 +10,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import Types from "./types";
+import Types from "./types.js";
 
 /** A FIT field value — a scalar or array of one of the primitive FIT base types. */
 export type FieldValue =

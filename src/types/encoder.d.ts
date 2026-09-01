@@ -10,8 +10,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { Encodable, Mesg } from "./mesg";
-import { DeveloperDataIdMesg, FieldDescriptionMesg } from "./mesgs";
+import { Encodable, Mesg } from "./mesg.js";
+import { DeveloperDataIdMesg, FieldDescriptionMesg } from "./mesgs.js";
 
 export interface FieldDescription {
     /** The Developer Data Id message. */

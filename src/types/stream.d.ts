@@ -10,8 +10,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { CrcCalculator } from "./crc-calculator";
-import { FieldValue } from "./mesg";
+import { CrcCalculator } from "./crc-calculator.js";
+import { FieldValue } from "./mesg.js";
 
 /** Represents a FIT file's bytes and provides sequential read access. */
 export class Stream {

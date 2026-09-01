@@ -10,13 +10,13 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-export * from './types/crc-calculator';
-export * from './types/decoder';
-export * from './types/encoder';
-export * from './types/mesg';
-export * from './types/mesgs';
-export * from './types/profile';
-export * from './types/stream';
-export * from './types/types';
-export { default as Types } from './types/types';
-export * from './types/utils';
+export * from './types/crc-calculator.js';
+export * from './types/decoder.js';
+export * from './types/encoder.js';
+export * from './types/mesg.js';
+export * from './types/mesgs.js';
+export * from './types/profile.js';
+export * from './types/stream.js';
+export * from './types/types.js';
+export { default as Types } from './types/types.js';
+export * from './types/utils.js';

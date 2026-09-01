@@ -10,8 +10,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { Mesg } from "./mesg";
-import Types from "./types";
+import { Mesg } from "./mesg.js";
+import Types from "./types.js";
 
 
 /**
