@@ -737,6 +737,14 @@ describe("Decoder Tests", () => {
 
             expect(errors.length).toBe(0);
         });
+
+        test("When decoding a file with an unknown field before an accumulated field with the includeUnknownData flag set to true", () => {
+            const stream = Stream.fromByteArray(Data.unknownFieldBeforeAccumulatedField);
+            const decode = new Decoder(stream);
+            const { messages, errors } = decode.read({ includeUnknownData: true });
+
+            expect(errors.length).toBe(0);
+        });
     });
 
     describe("Decode Legacy Array Mode", () => {
