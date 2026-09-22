@@ -8,7 +8,7 @@
 
 import { expectTypeOf, test, expect, describe } from "vitest";
 
-import * as FIT from "../src/index";
+import * as FIT from "../src/index.js";
 
 describe("Decoder Type Tests", () => {
     test("Decoder Constructor", () => {
