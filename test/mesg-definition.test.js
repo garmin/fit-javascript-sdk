@@ -44,26 +44,70 @@ describe("MesgDefinition", () => {
         }).toThrowError("Could not construct MesgDefinition from Message");
     });
 
-    test("Equals returns true for same definition", () => {
-        const mesg = { type: 4, manufacturer: 1, };
-        const def1 = new MesgDefinition(Profile.MesgNum.FILE_ID, mesg);
-        const def2 = new MesgDefinition(Profile.MesgNum.FILE_ID, mesg);
+    const developerDataIdMesg = { developerDataIndex: 0, };
+    const developerFieldDescriptions = {
+        fieldDescriptions: {
+            alpha: {
+                developerDataIdMesg,
+                fieldDescriptionMesg: {
+                    developerDataIndex: 0,
+                    fieldDefinitionNumber: 0,
+                    fitBaseTypeId: FIT.BaseType.UINT8,
+                },
+            },
+            beta: {
+                developerDataIdMesg,
+                fieldDescriptionMesg: {
+                    developerDataIndex: 0,
+                    fieldDefinitionNumber: 1,
+                    fitBaseTypeId: FIT.BaseType.UINT8,
+                },
+            },
+        },
+    };
 
-        expect(def1.equals(def2)).toBe(true);
-    });
+    test.for([
+        {
+            name: "returns true for the same definition",
+            first: [Profile.MesgNum.FILE_ID, { type: 4, manufacturer: 1, }],
+            second: [Profile.MesgNum.FILE_ID, { type: 4, manufacturer: 1, }],
+            expected: true,
+        },
+        {
+            name: "returns true when fields match but order is different",
+            first: [Profile.MesgNum.FILE_ID, { manufacturer: 1, type: 4, }],
+            second: [Profile.MesgNum.FILE_ID, { type: 1, manufacturer: 4, }],
+            expected: true,
+        },
+        {
+            name: "returns false for different fields",
+            first: [Profile.MesgNum.FILE_ID, { type: 4, manufacturer: 1, }],
+            second: [Profile.MesgNum.FILE_ID, { type: 4, }],
+            expected: false,
+        },
+        {
+            name: "returns false for different message types",
+            first: [Profile.MesgNum.FILE_ID, { type: 4, }],
+            second: [Profile.MesgNum.FILE_CREATOR, { softwareVersion: 100, }],
+            expected: false,
+        },
+        {
+            name: "returns true for developer fields in the same order",
+            first: [Profile.MesgNum.FILE_ID, { type: 4, developerFields: { alpha: 1, beta: 2, }, }, developerFieldDescriptions],
+            second: [Profile.MesgNum.FILE_ID, { type: 4, developerFields: { alpha: 3, beta: 4, }, }, developerFieldDescriptions],
+            expected: true,
+        },
+        {
+            name: "returns true for developer fields in a different order",
+            first: [Profile.MesgNum.FILE_ID, { type: 4, developerFields: { alpha: 1, beta: 2, }, }, developerFieldDescriptions],
+            second: [Profile.MesgNum.FILE_ID, { type: 4, developerFields: { beta: 4, alpha: 3, }, }, developerFieldDescriptions],
+            expected: true,
+        },
+    ])("Equals $name", ({ first, second, expected, }) => {
+        const firstDefinition = new MesgDefinition(...first);
+        const secondDefinition = new MesgDefinition(...second);
 
-    test("Equals returns false for different fields", () => {
-        const def1 = new MesgDefinition(Profile.MesgNum.FILE_ID, { type: 4, manufacturer: 1, });
-        const def2 = new MesgDefinition(Profile.MesgNum.FILE_ID, { type: 4, });
-
-        expect(def1.equals(def2)).toBe(false);
-    });
-
-    test("Equals returns false for different message types", () => {
-        const def1 = new MesgDefinition(Profile.MesgNum.FILE_ID, { type: 4, });
-        const def2 = new MesgDefinition(Profile.MesgNum.FILE_CREATOR, { softwareVersion: 100, });
-
-        expect(def1.equals(def2)).toBe(false);
+        expect(firstDefinition.equals(secondDefinition)).toBe(expected);
     });
 
     test("Skips null values", () => {
