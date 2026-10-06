@@ -309,6 +309,76 @@ describe("Encoder Tests", () => {
             }
         );
     });
+
+    describe("Unsupported Field Value Transformation Tests", () => {
+        const nonPrimitiveValueTestData = [
+            { description: "a plain object", value: {} },
+            { description: "a function", value: () => {} },
+            { description: "a symbol", value: Symbol("invalid") },
+            { description: "NaN", value: NaN },
+            { description: "Infinity", value: Infinity },
+        ];
+
+        test.for(nonPrimitiveValueTestData)(
+            "Encoding a numeric field with $description throws",
+            ({ value }) => {
+                addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                    0: { name: "testField", type: "uint8", baseType: "uint8" },
+                });
+
+                expect(() => encodeMesgs([{
+                    mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                    mesg: { testField: value },
+                }])).toThrowError();
+            }
+        );
+
+        test.for([
+            { fieldType: "dateTime", baseType: "uint32" },
+            { fieldType: "string", baseType: "string" },
+        ])("Encoding a $fieldType field with a plain object throws", ({ fieldType, baseType }) => {
+            addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                0: { name: "testField", type: fieldType, baseType },
+            });
+
+            expect(() => encodeMesgs([{
+                mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                mesg: { testField: {} },
+            }])).toThrowError();
+        });
+
+        test.for([
+            { description: "null", value: [1, null, 2] },
+            { description: "undefined", value: [1, undefined, 2] },
+            { description: "a plain object", value: [1, {}, 2] },
+        ])("Encoding an array field with a $description element throws", ({ value }) => {
+            addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                0: { name: "testField", type: "uint8", baseType: "uint8", array: true },
+            });
+
+            expect(() => encodeMesgs([{
+                mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                mesg: { testField: value },
+            }])).toThrowError();
+        });
+
+        test("Encoding a non-primitive value reports the underlying conversion failure in the error cause", () => {
+            addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                0: { name: "testField", type: "uint8", baseType: "uint8" },
+            });
+
+            try {
+                encodeMesgs([{
+                    mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                    mesg: { testField: {} },
+                }]);
+                expect.unreachable("Expected encodeMesgs to throw");
+            }
+            catch (error) {
+                expect(error.cause.cause.message).toMatch(/Could not convert/);
+            }
+        });
+    });
 });
 
 describe("Encoder-Decoder Integration Tests", () => {
@@ -337,6 +407,71 @@ describe("Encoder-Decoder Integration Tests", () => {
             console.error(`${error.name}: ${error.message} \n${JSON.stringify(error.cause, null, 3)}`);
             throw error;
         }
+    });
+
+    test("Can encode and decode messages with different field orders", () => {
+        const { messages, errors, } = encodeThenDecodeMesgs([
+            {
+                mesgNum: Profile.MesgNum.FILE_ID,
+                mesg: { manufacturer: "garmin", type: "activity", },
+            },
+            {
+                mesgNum: Profile.MesgNum.FILE_ID,
+                mesg: { number: 1234, manufacturer: "tacx", type: "activity", },
+            },
+            {
+                mesgNum: Profile.MesgNum.FILE_ID,
+                mesg: { type: "activity", manufacturer: "garmin", },
+            },
+        ]);
+
+        expect(errors.length).toBe(0);
+        expect(messages.fileIdMesgs).toEqual([
+            { manufacturer: "garmin", type: "activity", },
+            { number: 1234, manufacturer: "tacx", type: "activity", },
+            { manufacturer: "garmin", type: "activity", },
+        ]);
+    });
+
+    test("Can encode and decode messages with different developer field orders", () => {
+        const developerDataIdMesg = {
+            developerDataIndex: 0,
+        };
+        const alphaFieldDescriptionMesg = {
+            developerDataIndex: 0,
+            fieldDefinitionNumber: 0,
+            fitBaseTypeId: Utils.FieldTypeToBaseType.uint8,
+            fieldName: "alpha",
+        };
+        const betaFieldDescriptionMesg = {
+            developerDataIndex: 0,
+            fieldDefinitionNumber: 1,
+            fitBaseTypeId: Utils.FieldTypeToBaseType.uint8,
+            fieldName: "beta",
+        };
+        const fieldDescriptions = {
+            alpha: { developerDataIdMesg, fieldDescriptionMesg: alphaFieldDescriptionMesg, },
+            beta: { developerDataIdMesg, fieldDescriptionMesg: betaFieldDescriptionMesg, },
+        };
+
+        const { messages, errors, } = encodeThenDecodeMesgs([
+            { mesgNum: Profile.MesgNum.DEVELOPER_DATA_ID, mesg: developerDataIdMesg, },
+            { mesgNum: Profile.MesgNum.FIELD_DESCRIPTION, mesg: alphaFieldDescriptionMesg, },
+            { mesgNum: Profile.MesgNum.FIELD_DESCRIPTION, mesg: betaFieldDescriptionMesg, },
+            {
+                mesgNum: Profile.MesgNum.FILE_ID,
+                mesg: { type: "activity", developerFields: { beta: 22, alpha: 11, }, },
+            },
+            {
+                mesgNum: Profile.MesgNum.FILE_ID,
+                mesg: { type: "activity", developerFields: { alpha: 33, beta: 44, }, },
+            },
+        ], { fieldDescriptions, decoderOptions: DECODER_OPTIONS, });
+
+        expect(errors.length).toBe(0);
+        expect(messages.fileIdMesgs).toHaveLength(2);
+        expect(messages.fileIdMesgs[0].developerFields).toEqual({ 0: 11, 1: 22, });
+        expect(messages.fileIdMesgs[1].developerFields).toEqual({ 0: 33, 1: 44, });
     });
 
     test("Can decode encoded message with expanded component fields", () => {
