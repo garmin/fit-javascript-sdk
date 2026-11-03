@@ -350,8 +350,28 @@ describe("Encoder Tests", () => {
         test.for([
             { description: "null", value: [1, null, 2] },
             { description: "undefined", value: [1, undefined, 2] },
+        ])("Encoding an array field with a $description element writes the invalid value", ({ value }) => {
+            const FIELD_DATA_OFFSET = 24;
+
+            addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
+                0: { name: "testField", type: "uint8", baseType: "uint8", array: true },
+            });
+
+            const uint8Array = encodeMesgs([{
+                mesgNum: DEFAULT_CUSTOM_MESG_NUM,
+                mesg: { testField: value },
+            }]);
+
+            expect(Array.from(uint8Array.slice(FIELD_DATA_OFFSET, FIELD_DATA_OFFSET + 3))).toEqual([1, 0xFF, 2]);
+        });
+
+        test.for([
             { description: "a plain object", value: [1, {}, 2] },
-        ])("Encoding an array field with a $description element throws", ({ value }) => {
+            { description: "a function", value: [1, () => {}, 2] },
+            { description: "a symbol", value: [1, Symbol("invalid"), 2] },
+            { description: "NaN", value: [1, NaN, 2] },
+            { description: "Infinity", value: [1, Infinity, 2] },
+        ])("Encoding an array field with $description as an element throws", ({ value }) => {
             addCustomMesgToFitProfile(DEFAULT_CUSTOM_MESG_NUM, "testMesg", {
                 0: { name: "testField", type: "uint8", baseType: "uint8", array: true },
             });

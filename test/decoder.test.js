@@ -5,7 +5,7 @@
 // Transfer (FIT) Protocol License.
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import * as fs from "fs";
 
@@ -17,7 +17,7 @@ import Stream from "../src/stream.js";
 import Data from "./data/test-data.js";
 import HrData from "./data/test-data-expand-hr-mesgs.js";
 import { uint16LE, uint32LE, uint64LE, buildFit } from "./utils/fit-builder.js";
-import { encodeThenDecodeMesgs } from "./testUtils.js";
+import { DEFAULT_CUSTOM_MESG_NUM, addCustomMesgToFitProfile, encodeThenDecodeMesgs } from "./testUtils.js";
 
 describe("Decoder Tests", () => {
     describe("Decoder Constructor Tests", () => {
