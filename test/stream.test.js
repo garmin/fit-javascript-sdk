@@ -380,6 +380,44 @@ describe("Stream Tests", () => {
         });
     });
 
+    describe("Float NaN Tests", () => {
+        // Little-endian bytes for 1.5, 2.5 and the all-0xFF NaN pattern
+        const floatCases = [
+            {
+                label: "Float32", baseType: FIT.BaseType.FLOAT32, size: 4,
+                nan: [0xFF, 0xFF, 0xFF, 0xFF],
+                valid: [[0x00, 0x00, 0xC0, 0x3F], [0x00, 0x00, 0x20, 0x40]],
+            },
+            {
+                label: "Float64", baseType: FIT.BaseType.FLOAT64, size: 8,
+                nan: new Array(8).fill(0xFF),
+                valid: [[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF8, 0x3F], [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x40]],
+            },
+        ];
+
+        describe.each(floatCases)("$label", ({ baseType, size, nan, valid }) => {
+            test("Single NaN is read as null", () => {
+                const stream = Stream.fromByteArray(nan);
+                expect(stream.readValue(baseType, size)).toBeNull();
+            });
+
+            test("Single valid value is preserved", () => {
+                const stream = Stream.fromByteArray(valid[0]);
+                expect(stream.readValue(baseType, size)).toBe(1.5);
+            });
+
+            test("NaN in an array becomes null and other positions are preserved", () => {
+                const stream = Stream.fromByteArray([...valid[0], ...nan, ...valid[1]]);
+                expect(stream.readValue(baseType, size * 3, { isArray: true })).toEqual([1.5, null, 2.5]);
+            });
+
+            test("Array of only NaN is read as null", () => {
+                const stream = Stream.fromByteArray([...nan, ...nan]);
+                expect(stream.readValue(baseType, size * 2, { isArray: true })).toBeNull();
+            });
+        });
+    });
+
     describe("String Tests", () => {
         test("Read String w/o Null Terminator", () => {
             const stream = Stream.fromByteArray([0x2E, 0x46, 0x49, 0x54]);
