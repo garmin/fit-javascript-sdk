@@ -365,7 +365,7 @@ describe("Decoder Tests", () => {
             const decode = new Decoder(stream);
             const { errors } = decode.read();
             expect(errors.length).toBe(1);
-            expect(errors[0].message).toContain("compressed timestamp messages are not currently supported");
+            expect(errors[0].message).toContain("unexpected compressed timestamp header found");
         });
     });
 
